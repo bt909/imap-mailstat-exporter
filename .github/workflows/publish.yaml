@@ -16,7 +16,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build the hello-world Docker image
+    - name: Build the imap-mailstat-exporter OCI image
       run: |
         docker build . --tag ghcr.io/bt909/imap-mailstat-exporter:latest
         docker run ghcr.io/bt909/imap-mailstat-exporter:latest
