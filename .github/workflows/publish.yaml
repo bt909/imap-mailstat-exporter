@@ -3,7 +3,7 @@ name: publish
 on: [push]
 
 jobs:
-  publish-hello-world-image:
+  publish-imap-mailstat-exporter-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,5 +19,4 @@ jobs:
     - name: Build the imap-mailstat-exporter OCI image
       run: |
         docker build . --tag ghcr.io/bt909/imap-mailstat-exporter:latest
-        docker run ghcr.io/bt909/imap-mailstat-exporter:latest
         docker push ghcr.io/bt909/imap-mailstat-exporter:latest
