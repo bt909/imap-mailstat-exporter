@@ -1,0 +1,25 @@
+name: publish
+
+on: 
+  push:
+    branches:
+      - "main"
+      
+jobs:
+  publish-imap-mailstat-exporter-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build the imap-mailstat-exporter OCI image
+      run: |
+        docker build . --tag ghcr.io/bt909/imap-mailstat-exporter:latest
+        docker push ghcr.io/bt909/imap-mailstat-exporter:latest
