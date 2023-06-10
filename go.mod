@@ -3,7 +3,7 @@ module imap-mailstat-exporter
 go 1.18
 
 require (
-	github.com/BurntSushi/toml v1.3.1
+	github.com/BurntSushi/toml v1.3.2
 	github.com/emersion/go-imap v1.2.1
 	github.com/prometheus/client_golang v1.15.1
 )
