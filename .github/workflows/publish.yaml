@@ -1,7 +1,10 @@
 name: publish
 
-on: [push]
-
+on: 
+  push:
+    branches:
+      - "main"
+      
 jobs:
   publish-imap-mailstat-exporter-image:
     runs-on: ubuntu-latest
