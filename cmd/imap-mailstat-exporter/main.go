@@ -1,3 +1,4 @@
+// Package imap-mailstat-exporter provides metrics for imap mailboxes
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// main function just for the main prometheus exporter functions
 func main() {
 
 	reg := prometheus.NewRegistry()
