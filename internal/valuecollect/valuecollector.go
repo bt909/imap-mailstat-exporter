@@ -1,8 +1,8 @@
-package valuecollector
+package valuecollect
 
 import (
 	"fmt"
-	"imap-mailstat-exporter/pkg/configread"
+	configread "imap-mailstat-exporter/internal/configread"
 	"log"
 	"strings"
 	"sync"

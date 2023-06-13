@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	valuecollector "imap-mailstat-exporter/pkg/valuecollect"
+	"imap-mailstat-exporter/internal/valuecollect"
 	"log"
 	"net/http"
 
@@ -13,7 +13,7 @@ import (
 func main() {
 
 	reg := prometheus.NewRegistry()
-	d := valuecollector.NewImapStatsCollector()
+	d := valuecollect.NewImapStatsCollector()
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()
