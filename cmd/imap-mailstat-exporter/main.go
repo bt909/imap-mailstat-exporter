@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"imap-mailstat-exporter/internal/valuecollect"
 	"log"
@@ -13,6 +14,9 @@ import (
 
 // main function just for the main prometheus exporter functions
 func main() {
+
+	flag.StringVar(&valuecollect.Configfile, "config", "./config/config.toml", "provide the configfile")
+	flag.Parse()
 
 	reg := prometheus.NewRegistry()
 	d := valuecollect.NewImapStatsCollector()

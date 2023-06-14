@@ -13,6 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+var Configfile string
+
 type imapStatsCollector struct {
 	entireMails *prometheus.Desc
 	unseenMails *prometheus.Desc
@@ -65,7 +67,7 @@ func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // collect values and put them in metrics channel
 func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
-	config := configread.GetConfig()
+	config := configread.GetConfig(Configfile)
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
 	wg.Add(sliceLength)

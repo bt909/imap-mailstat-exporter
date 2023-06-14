@@ -30,8 +30,8 @@ type MyConfig struct {
 }
 
 // the main function for reading and unmarshaling the configfile
-func GetConfig() MyConfig {
-	file, err := os.ReadFile("./config/config.toml")
+func GetConfig(configfile string) MyConfig {
+	file, err := os.ReadFile(configfile)
 	checkError(err)
 	var config MyConfig
 	err = toml.Unmarshal(file, &config)
