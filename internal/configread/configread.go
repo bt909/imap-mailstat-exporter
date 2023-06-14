@@ -1,3 +1,4 @@
+// Package configread is for handling the configuration, reading and unmarshaling
 package configread
 
 import (
@@ -6,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// a generic reusable error handling, needs to be enhanced
 func checkError(e error) {
 	if e != nil {
 		panic(e)
@@ -27,8 +29,9 @@ type MyConfig struct {
 	Accounts []*AccountConfig
 }
 
-func GetConfig() MyConfig {
-	file, err := os.ReadFile("./config/config.toml")
+// the main function for reading and unmarshaling the configfile
+func GetConfig(configfile string) MyConfig {
+	file, err := os.ReadFile(configfile)
 	checkError(err)
 	var config MyConfig
 	err = toml.Unmarshal(file, &config)

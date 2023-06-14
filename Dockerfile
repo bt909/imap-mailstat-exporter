@@ -4,10 +4,10 @@ WORKDIR /go/src/imap-mailstat-exporter
 COPY . .
 
 RUN go mod download
-RUN go vet -v
-RUN go test -v
+RUN go vet -v cmd/imap-mailstat-exporter/main.go
+RUN go test -v cmd/imap-mailstat-exporter/main.go
 
-RUN CGO_ENABLED=0 go build -o /go/bin/imap-mailstat-exporter
+RUN CGO_ENABLED=0 go build -o /go/bin/imap-mailstat-exporter cmd/imap-mailstat-exporter/main.go
 
 FROM gcr.io/distroless/static
 

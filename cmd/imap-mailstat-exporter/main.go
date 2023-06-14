@@ -1,8 +1,10 @@
+// Package imap-mailstat-exporter provides metrics for imap mailboxes
 package main
 
 import (
+	"flag"
 	"fmt"
-	valuecollector "imap-mailstat-exporter/pkg/valuecollect"
+	"imap-mailstat-exporter/internal/valuecollect"
 	"log"
 	"net/http"
 
@@ -10,10 +12,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// main function just for the main prometheus exporter functions
 func main() {
 
+	flag.StringVar(&valuecollect.Configfile, "config", "./config/config.toml", "provide the configfile")
+	flag.Parse()
+
 	reg := prometheus.NewRegistry()
-	d := valuecollector.NewImapStatsCollector()
+	d := valuecollect.NewImapStatsCollector()
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()
