@@ -35,8 +35,8 @@ func NewImapStatsCollector() *imapStatsCollector {
 
 }
 
-// count total mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countSeen(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
+// count entire mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
+func countEntire(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
 	mailboxfolder = strings.ReplaceAll(mailboxfolder, " ", "_")
 	mailboxname = strings.ReplaceAll(mailbox.Name, ".", "_")
 	messages = mailbox.Messages
@@ -94,10 +94,10 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				log.Fatalf("failed to select INBOX: %v", err)
 			}
 
-			metricSeenInbox, namespaceSeenInBox, countSeenInbox := countSeen(c, selectedInbox, config.Accounts[account].Name)
+			metricSeenInbox, namespaceSeenInBox, countEntireInbox := countEntire(c, selectedInbox, config.Accounts[account].Name)
 			var metricnameSeenInbox []string
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
-			ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countSeenInbox), metricnameSeenInbox...)
+			ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countEntireInbox), metricnameSeenInbox...)
 
 			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name)
 			var metricnameUnseenInbox []string
@@ -114,10 +114,10 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Fatalf("failed to select %s: %v", mboxfolder.String(), err)
 				}
 
-				metricSeen, namespaceSeen, countSeen := countSeen(c, selected, config.Accounts[account].Name)
+				metricSeen, namespaceSeen, countEntire := countEntire(c, selected, config.Accounts[account].Name)
 				var metricnameSeen []string
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
-				ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countSeen), metricnameSeen...)
+				ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countEntire), metricnameSeen...)
 
 				metricUnseen, namespaceUnseen, countUnseen := countUnseen(c, selected, config.Accounts[account].Name)
 				var metricnameUnseen []string
