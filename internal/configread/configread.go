@@ -3,6 +3,7 @@ package configread
 
 import (
 	"os"
+	"sync"
 
 	"github.com/BurntSushi/toml"
 )
@@ -35,5 +36,18 @@ func GetConfig(configfile string) MyConfig {
 	checkError(err)
 	var config MyConfig
 	err = toml.Unmarshal(file, &config)
+
+	sliceLength := len(config.Accounts)
+	var wg sync.WaitGroup
+	wg.Add(sliceLength)
+
+	for account := range config.Accounts {
+		go func(account int) {
+			defer wg.Done()
+			if config.Accounts[account].Username == "" {
+				config.Accounts[account].Username = config.Accounts[account].Mailaddress
+			}
+		}(account)
+	}
 	return config
 }

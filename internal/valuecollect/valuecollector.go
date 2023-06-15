@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -75,7 +76,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	for account := range config.Accounts {
 		go func(account int) {
 			defer wg.Done()
-			fmt.Println("Fetch metrics for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress)
+			fmt.Println("Fetch metrics for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress, "at", time.Now().Format(time.RFC850))
 
 			var serverconnection strings.Builder
 			serverconnection.WriteString(config.Accounts[account].Serveraddress)
@@ -87,7 +88,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 			defer c.Close()
 
-			if err := c.Login(config.Accounts[account].Mailaddress, config.Accounts[account].Password); err != nil {
+			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
 				log.Fatalf("failed to login: %v", err)
 			}
 
