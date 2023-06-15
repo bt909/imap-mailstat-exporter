@@ -5,8 +5,8 @@
 [[Accounts]]
 name = "Jane Mailbox" # mailbox, you can set as you like, will be used as metric label (whitespace are replaced by underscore)
 mailaddress = "jane@example.com" # your email address (at the moment used as login name)
-username = "" # not yet implemented
-password = "" # your password, beware of escaping characters like \ or "
+username = "your_user_name" # if empty string mailaddress value is used
+password = "your_password" # beware of escaping characters like \ or "
 serveraddress = "mail.example.com" # mailserver name or address
 serverport = 993 # imap port number (at the moment only tls connection is supported)
 starttls = false # not yet implemented, will be available if you use STARTTLS
