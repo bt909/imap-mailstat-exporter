@@ -64,8 +64,6 @@ starttls = false
 additionalfolders = ["Trash", "Spam"]
 ```
 
-This exporter is in early development and at the moment highly adjusted for my personal usecase.
-
 ## OCI Container Image
 
 Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. At the moment there are no releases, just latest or you can use the digest.
