@@ -18,20 +18,20 @@ import (
 var Configfile string
 
 type imapStatsCollector struct {
-	entireMails *prometheus.Desc
+	allMails    *prometheus.Desc
 	unseenMails *prometheus.Desc
 }
 
 // provide metric "layout"
 func NewImapStatsCollector() *imapStatsCollector {
 	return &imapStatsCollector{
-		entireMails: prometheus.NewDesc(
-			prometheus.BuildFQName("imap", "entire", "mails"),
+		allMails: prometheus.NewDesc(
+			prometheus.BuildFQName("imap", "mails_all", "quantity"),
 			"The total number of mails in folder",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		unseenMails: prometheus.NewDesc(
-			prometheus.BuildFQName("imap", "unseen", "mails"),
+			prometheus.BuildFQName("imap", "mails_unseen", "quantity"),
 			"The total number of unseen mails in folder",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
@@ -39,8 +39,8 @@ func NewImapStatsCollector() *imapStatsCollector {
 
 }
 
-// count entire mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countEntire(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
+// count all mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
+func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
 	mailboxfolder = strings.ReplaceAll(mailboxfolder, " ", "_")
 	mailboxname = strings.ReplaceAll(mailbox.Name, ".", "_")
 	messages = mailbox.Messages
@@ -63,7 +63,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 
 // put metrics description in description channel
 func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- valuecollector.entireMails
+	ch <- valuecollector.allMails
 	ch <- valuecollector.unseenMails
 }
 
@@ -75,9 +75,10 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	wg.Add(sliceLength)
 
 	for account := range config.Accounts {
+		start := time.Now()
 		go func(account int) {
 			defer wg.Done()
-			fmt.Println("Fetch metrics for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress, "at", time.Now().Format(time.RFC850))
+			fmt.Println("Start metrics fetch for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress, "at", time.Now().Format(time.RFC850))
 
 			var serverconnection strings.Builder
 			var c *client.Client
@@ -94,6 +95,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 			} else {
 				c, err = client.DialTLS(serverconnection.String(), nil)
+				fmt.Println("Connection setup takes", time.Since(start), "for", config.Accounts[account].Mailaddress)
 				if err != nil {
 					log.Fatalf("failed to dial IMAP server: %v", err)
 				}
@@ -101,19 +103,21 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			defer c.Close()
 
+			startLogin := time.Now()
 			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
 				log.Fatalf("failed to login: %v", err)
 			}
+			fmt.Println("Login takes", time.Since(startLogin), "for", config.Accounts[account].Mailaddress)
 
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
 				log.Fatalf("failed to select INBOX: %v", err)
 			}
 
-			metricSeenInbox, namespaceSeenInBox, countEntireInbox := countEntire(c, selectedInbox, config.Accounts[account].Name)
+			metricSeenInbox, namespaceSeenInBox, countAllmailsInbox := countAllmails(c, selectedInbox, config.Accounts[account].Name)
 			var metricnameSeenInbox []string
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
-			ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countEntireInbox), metricnameSeenInbox...)
+			ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmailsInbox), metricnameSeenInbox...)
 
 			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name)
 			var metricnameUnseenInbox []string
@@ -130,10 +134,10 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Fatalf("failed to select %s: %v", mboxfolder.String(), err)
 				}
 
-				metricSeen, namespaceSeen, countEntire := countEntire(c, selected, config.Accounts[account].Name)
+				metricSeen, namespaceSeen, countAllmails := countAllmails(c, selected, config.Accounts[account].Name)
 				var metricnameSeen []string
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
-				ch <- prometheus.MustNewConstMetric(valuecollector.entireMails, prometheus.GaugeValue, float64(countEntire), metricnameSeen...)
+				ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmails), metricnameSeen...)
 
 				metricUnseen, namespaceUnseen, countUnseen := countUnseen(c, selected, config.Accounts[account].Name)
 				var metricnameUnseen []string
@@ -144,6 +148,8 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			if err := c.Logout(); err != nil {
 				log.Fatalf("failed to logout: %v", err)
 			}
+
+			fmt.Println("Metric fetch takes:", time.Since(start), "for address", config.Accounts[account].Mailaddress)
 		}(account)
 	}
 	wg.Wait()
