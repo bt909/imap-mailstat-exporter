@@ -3,7 +3,9 @@
 [![publish](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml/badge.svg)](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml)
  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.
+This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.  
+
+Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
 > **Note**  
 > This exporter is in early development and at the moment highly adjusted for my personal usecase.
@@ -39,7 +41,8 @@ commandline flag `-config=<path/configfile`> to specify where your configfile is
 Example configuration, for one account, use only one account definition.
 
 ```config
-# This is a example configfile. You need only one account configured, but all keys need to be defined (or empty if not yet implemented).
+# This is a example configfile.  
+# You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
 # If you put you config elsewhere you can use the commandline flag -config=<path/configfile> to specify where your config is.
 
@@ -50,7 +53,7 @@ username = "your_user_name" # if empty string mailaddress value is used
 password = "your_password" # beware of escaping characters like \ or "
 serveraddress = "mail.example.com" # mailserver name or address
 serverport = 993 # imap port number (at the moment only tls connection is supported)
-starttls = false # not yet implemented, will be available if you use STARTTLS
+starttls = false # set to true for using standard port 143 and STARTTLS to start a TLS connection
 additionalfolders = ["Trash", "Spam"] # additional mailfolders you want to have metrics for
 
 [[Accounts]] # you can configure more accounts if you like
@@ -59,8 +62,8 @@ mailaddress = "jane.doe@example.com"
 username = ""
 password = ""
 serveraddress = "mail.example.com"
-serverport = 993
-starttls = false
+serverport = 143
+starttls = true
 additionalfolders = ["Trash", "Spam"]
 ```
 
@@ -68,3 +71,7 @@ additionalfolders = ["Trash", "Spam"]
 
 Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. At the moment there are no releases, just latest or you can use the digest.
 Releases will be available soon.
+
+## License
+
+This project is licensed using MIT license, see [LICENSE](https://github.com/bt909/imap-mailstat-exporter/blob/main/LICENSE)

@@ -2,6 +2,7 @@
 package valuecollect
 
 import (
+	"crypto/tls"
 	"fmt"
 	"imap-mailstat-exporter/internal/configread"
 	"log"
@@ -79,13 +80,25 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			fmt.Println("Fetch metrics for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress, "at", time.Now().Format(time.RFC850))
 
 			var serverconnection strings.Builder
+			var c *client.Client
+			var err error
+
 			serverconnection.WriteString(config.Accounts[account].Serveraddress)
 			serverconnection.WriteString(":")
 			serverconnection.WriteString(fmt.Sprint(config.Accounts[account].Serverport))
-			c, err := client.DialTLS(serverconnection.String(), nil)
-			if err != nil {
-				log.Fatalf("failed to dial IMAP server: %v", err)
+			if config.Accounts[account].Starttls == true {
+				c, err = client.Dial(serverconnection.String())
+				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
+				if err := c.StartTLS(tlsConfig); err != nil {
+					log.Fatalf("failed to dial IMAP server: %v", err)
+				}
+			} else {
+				c, err = client.DialTLS(serverconnection.String(), nil)
+				if err != nil {
+					log.Fatalf("failed to dial IMAP server: %v", err)
+				}
 			}
+
 			defer c.Close()
 
 			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
