@@ -1,4 +1,5 @@
-# This is a example configfile. You need only one account configured, but all keys need to be defined (or empty if not yet implemented).
+# This is a example configfile.  
+# You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
 # If you put you config elsewhere you can use the commandline flag -config=<path/configfile> to specify where your config is.
 
@@ -9,7 +10,7 @@ username = "your_user_name" # if empty string mailaddress value is used
 password = "your_password" # beware of escaping characters like \ or "
 serveraddress = "mail.example.com" # mailserver name or address
 serverport = 993 # imap port number (at the moment only tls connection is supported)
-starttls = false # not yet implemented, will be available if you use STARTTLS
+starttls = false # set to true for using standard port 143 and STARTTLS to start a TLS connection
 additionalfolders = ["Trash", "Spam"] # additional mailfolders you want to have metrics for
 
 [[Accounts]] # you can configure more accounts if you like
@@ -18,6 +19,6 @@ mailaddress = "jane.doe@example.com"
 username = ""
 password = ""
 serveraddress = "mail.example.com"
-serverport = 993
-starttls = false
+serverport = 143
+starttls = true
 additionalfolders = ["Trash", "Spam"]

@@ -3,7 +3,9 @@
 [![publish](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml/badge.svg)](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml)
  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.
+This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.  
+
+Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
 > **Note**  
 > This exporter is in early development and at the moment highly adjusted for my personal usecase.
@@ -11,25 +13,27 @@ This is a prometheus exporter which gives you metrics for how many emails you ha
 The exporter provides two metrics:
 
 ```output
-# HELP imap_entire_mails The total number of mails in folder
-# TYPE imap_entire_mails gauge
-imap_entire_mails{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 537
-imap_entire_mails{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1308
-imap_entire_mails{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_entire_mails{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
-imap_entire_mails{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
-imap_entire_mails{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
-# HELP imap_unseen_mails The total number of unseen mails in folder
-# TYPE imap_unseen_mails gauge
-imap_unseen_mails{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
-imap_unseen_mails{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
-imap_unseen_mails{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_unseen_mails{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 0
-imap_unseen_mails{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
-imap_unseen_mails{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
+# HELP imap_mails_all_quantity The total number of mails in folder
+# TYPE imap_mails_all_quantity gauge
+imap_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 537
+imap_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1308
+imap_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+imap_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
+imap_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
+imap_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
+# HELP imap_mails_unseen_quantity The total number of unseen mails in folder
+# TYPE imap_mails_unseen_quantity gauge
+imap_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
+imap_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
+imap_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+imap_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 0
+imap_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
+imap_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
 ```
 
 Metrics are available via http on port 8081/tcp on path `/metrics`.
+
+It prints the metric fetch start time at standard output and some duration information for connection setup, login process and fetching metrics overall duration for each mailaddress.
 
 ## Configuration
 
@@ -39,7 +43,8 @@ commandline flag `-config=<path/configfile`> to specify where your configfile is
 Example configuration, for one account, use only one account definition.
 
 ```config
-# This is a example configfile. You need only one account configured, but all keys need to be defined (or empty if not yet implemented).
+# This is a example configfile.  
+# You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
 # If you put you config elsewhere you can use the commandline flag -config=<path/configfile> to specify where your config is.
 
@@ -50,7 +55,7 @@ username = "your_user_name" # if empty string mailaddress value is used
 password = "your_password" # beware of escaping characters like \ or "
 serveraddress = "mail.example.com" # mailserver name or address
 serverport = 993 # imap port number (at the moment only tls connection is supported)
-starttls = false # not yet implemented, will be available if you use STARTTLS
+starttls = false # set to true for using standard port 143 and STARTTLS to start a TLS connection
 additionalfolders = ["Trash", "Spam"] # additional mailfolders you want to have metrics for
 
 [[Accounts]] # you can configure more accounts if you like
@@ -59,8 +64,8 @@ mailaddress = "jane.doe@example.com"
 username = ""
 password = ""
 serveraddress = "mail.example.com"
-serverport = 993
-starttls = false
+serverport = 143
+starttls = true
 additionalfolders = ["Trash", "Spam"]
 ```
 
@@ -68,3 +73,7 @@ additionalfolders = ["Trash", "Spam"]
 
 Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. At the moment there are no releases, just latest or you can use the digest.
 Releases will be available soon.
+
+## License
+
+This project is licensed using MIT license, see [LICENSE](https://github.com/bt909/imap-mailstat-exporter/blob/main/LICENSE)
