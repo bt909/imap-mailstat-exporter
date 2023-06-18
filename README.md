@@ -13,22 +13,22 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 The exporter provides two metrics:
 
 ```output
-# HELP imap_mails_all_quantity The total number of mails in folder
-# TYPE imap_mails_all_quantity gauge
-imap_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 537
-imap_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1308
-imap_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
-imap_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
-imap_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
-# HELP imap_mails_unseen_quantity The total number of unseen mails in folder
-# TYPE imap_mails_unseen_quantity gauge
-imap_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
-imap_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
-imap_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 0
-imap_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
-imap_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
+# HELP imap_mailstat_mails_all_quantity The total number of mails in folder
+# TYPE imap_mailstat_mails_all_quantity gauge
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 537
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1308
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
+imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
+# HELP imap_mailstat_mails_unseen_quantity The total number of unseen mails in folder
+# TYPE imap_mailstat_mails_unseen_quantity gauge
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 0
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
+imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
 ```
 
 Metrics are available via http on port 8081/tcp on path `/metrics`.

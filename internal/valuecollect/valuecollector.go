@@ -26,12 +26,12 @@ type imapStatsCollector struct {
 func NewImapStatsCollector() *imapStatsCollector {
 	return &imapStatsCollector{
 		allMails: prometheus.NewDesc(
-			prometheus.BuildFQName("imap", "mails_all", "quantity"),
+			prometheus.BuildFQName("imap_mailstat", "mails_all", "quantity"),
 			"The total number of mails in folder",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		unseenMails: prometheus.NewDesc(
-			prometheus.BuildFQName("imap", "mails_unseen", "quantity"),
+			prometheus.BuildFQName("imap_mailstat", "mails_unseen", "quantity"),
 			"The total number of unseen mails in folder",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
