@@ -33,7 +33,17 @@ imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname=
 
 Metrics are available via http on port 8081/tcp on path `/metrics`.
 
-It prints the metric fetch start time at standard output and some duration information for connection setup, login process and fetching metrics overall duration for each mailaddress.
+## Commandline Options
+
+You have two available commandline options.
+
+```shell
+Usage of imap-mailstat-exporter:
+  -config string
+        provide the configfile (default "./config/config.toml")
+  -loglevel string
+        provide the desired loglevel, INFO and ERROR are supported (default "INFO")
+```
 
 ## Configuration
 
@@ -68,6 +78,11 @@ serverport = 143
 starttls = true
 additionalfolders = ["Trash", "Spam"]
 ```
+
+## Loglevel
+
+At the moment INFO (default) and ERROR are available. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
+If INFO is too noisy you can switch to ERROR level and only get information about errors by using commandline flag `-loglevel ERROR`.
 
 ## OCI Container Image
 
