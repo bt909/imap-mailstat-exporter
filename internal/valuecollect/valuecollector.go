@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"imap-mailstat-exporter/internal/configread"
-	"log"
+	"imap-mailstat-exporter/utils"
 	"strings"
 	"sync"
 	"time"
@@ -13,9 +13,11 @@ import (
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 var Configfile string
+var Loglevel string
 
 type imapStatsCollector struct {
 	allMails    *prometheus.Desc
@@ -55,7 +57,8 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 	criteria.WithoutFlags = []string{imap.SeenFlag}
 	ids, err := c.Search(criteria)
 	if err != nil {
-		log.Fatal(err)
+		utils.Logger.Error("Error in searching unseen mails", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+		return
 	}
 	messages = uint32(len(ids))
 	return metricname, namespacename, messages
@@ -69,6 +72,7 @@ func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // collect values and put them in metrics channel
 func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
+	utils.InitializeLogger(Loglevel)
 	config := configread.GetConfig(Configfile)
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
@@ -78,7 +82,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 		start := time.Now()
 		go func(account int) {
 			defer wg.Done()
-			fmt.Println("Start metrics fetch for", config.Accounts[account].Mailaddress, "using server", config.Accounts[account].Serveraddress, "at", time.Now().Format(time.RFC850))
+			utils.Logger.Info("Start metrics fetch", zap.String("address", config.Accounts[account].Mailaddress), zap.String("server", config.Accounts[account].Serveraddress))
 
 			var serverconnection strings.Builder
 			var c *client.Client
@@ -91,13 +95,15 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				c, err = client.Dial(serverconnection.String())
 				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
-					log.Fatalf("failed to dial IMAP server: %v", err)
+					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					return
 				}
 			} else {
 				c, err = client.DialTLS(serverconnection.String(), nil)
-				fmt.Println("Connection setup takes", time.Since(start), "for", config.Accounts[account].Mailaddress)
+				utils.Logger.Info("Connection setup", zap.String("duration", fmt.Sprint(time.Since(start))), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)))
 				if err != nil {
-					log.Fatalf("failed to dial IMAP server: %v", err)
+					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					return
 				}
 			}
 
@@ -105,13 +111,15 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			startLogin := time.Now()
 			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
-				log.Fatalf("failed to login: %v", err)
+				utils.Logger.Error("failed to login", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+				return
 			}
-			fmt.Println("Login takes", time.Since(startLogin), "for", config.Accounts[account].Mailaddress)
+			utils.Logger.Info("IMAP Login", zap.String("duration:", fmt.Sprint(time.Since(startLogin))), zap.String("address", config.Accounts[account].Mailaddress))
 
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
-				log.Fatalf("failed to select INBOX: %v", err)
+				utils.Logger.Error("failed to select", zap.String("folder", "Inbox"), zap.Error(err))
+				return
 			}
 
 			metricSeenInbox, namespaceSeenInBox, countAllmailsInbox := countAllmails(c, selectedInbox, config.Accounts[account].Name)
@@ -131,7 +139,8 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				mboxfolder.WriteString(f)
 				selected, err := c.Select(mboxfolder.String(), true)
 				if err != nil {
-					log.Fatalf("failed to select %s: %v", mboxfolder.String(), err)
+					utils.Logger.Error("failed to select", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.String("folder", mboxfolder.String()), zap.Error(err))
+					return
 				}
 
 				metricSeen, namespaceSeen, countAllmails := countAllmails(c, selected, config.Accounts[account].Name)
@@ -146,12 +155,11 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 
 			if err := c.Logout(); err != nil {
-				log.Fatalf("failed to logout: %v", err)
+				utils.Logger.Error("failed to logout", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+				return
 			}
-
-			fmt.Println("Metric fetch takes:", time.Since(start), "for address", config.Accounts[account].Mailaddress)
+			utils.Logger.Info("Metric fetch", zap.String("duration:", fmt.Sprint(time.Since(start))), zap.String("address", config.Accounts[account].Mailaddress))
 		}(account)
 	}
 	wg.Wait()
-
 }
