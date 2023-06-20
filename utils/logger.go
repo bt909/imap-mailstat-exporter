@@ -8,6 +8,7 @@ import (
 
 var Logger *zap.Logger
 
+// InitializeLogger configures and initialized the logger
 func InitializeLogger(loglevel string) {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
