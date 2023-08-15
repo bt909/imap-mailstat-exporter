@@ -67,12 +67,12 @@ func NewImapStatsCollector() *imapStatsCollector {
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaUsed: prometheus.NewDesc(
-			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaused", "megabytes"),
+			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaused", "kilobytes"),
 			"How many storage is used",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaAvail: prometheus.NewDesc(
-			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaavail", "megabytes"),
+			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaavail", "kilobytes"),
 			"How many storage is available according your quota",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
