@@ -113,7 +113,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 	return metricname, namespacename, messages
 }
 
-// count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
+// returns quota related values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
 func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
@@ -127,7 +127,7 @@ func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, mailboxname s
 		utils.Logger.Error("Error in getting quota for INBOX", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
 	}
 
-	// Print quotas
+	// put quota values in return values (index 0 is used, index 1 is available)
 	for _, quota := range quotas {
 		for name, usage := range quota.Resources {
 			mailboxUsed[name+"_used"] = usage[0]
@@ -216,7 +216,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			qc := quota.NewClient(c)
 
-			// Check for server support
+			// Check for server support and set metrics only for accounts with metrics available
 			if quotaSupport, _ := qc.SupportQuota(); quotaSupport {
 				utils.Logger.Info("Fetching quota related metrics", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)))
 
