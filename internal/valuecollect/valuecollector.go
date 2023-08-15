@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-imap"
+	quota "github.com/emersion/go-imap-quota"
 	"github.com/emersion/go-imap/client"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
@@ -20,8 +21,16 @@ var Configfile string
 var Loglevel string
 
 type imapStatsCollector struct {
-	allMails    *prometheus.Desc
-	unseenMails *prometheus.Desc
+	allMails          *prometheus.Desc
+	unseenMails       *prometheus.Desc
+	mailboxQuotaUsed  *prometheus.Desc
+	mailboxQuotaAvail *prometheus.Desc
+	levelQuotaUsed    *prometheus.Desc
+	levelQuotaAvail   *prometheus.Desc
+	storageQuotaUsed  *prometheus.Desc
+	storageQuotaAvail *prometheus.Desc
+	messageQuotaUsed  *prometheus.Desc
+	messageQuotaAvail *prometheus.Desc
 }
 
 // provide metric "layout"
@@ -35,6 +44,46 @@ func NewImapStatsCollector() *imapStatsCollector {
 		unseenMails: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_unseen", "quantity"),
 			"The total number of unseen mails in folder",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		mailboxQuotaUsed: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_mailboxquotaused", "quantity"),
+			"How many mailboxes are used",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		mailboxQuotaAvail: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_mailboxquotaavail", "quantity"),
+			"How many mailboxes are available according your quota",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		levelQuotaUsed: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_levelquotaused", "quantity"),
+			"How many levels are used",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		levelQuotaAvail: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_levelquotaavail", "quantity"),
+			"How many levels are available according your quota",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		storageQuotaUsed: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaused", "megabytes"),
+			"How many storage is used",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		storageQuotaAvail: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaavail", "megabytes"),
+			"How many storage is available according your quota",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		messageQuotaUsed: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_messagequotaused", "quantity"),
+			"How many messages are used",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
+		messageQuotaAvail: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_messagequotaavail", "quantity"),
+			"How many messages available according your quota",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 	}
@@ -64,10 +113,43 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 	return metricname, namespacename, messages
 }
 
+// count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
+func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
+	metricname = strings.ReplaceAll(mailboxname, " ", "_")
+	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
+
+	mailboxUsed = make(map[string]uint32)
+	mailboxAvail = make(map[string]uint32)
+
+	// Retrieve quotas for INBOX
+	quotas, err := qc.GetQuotaRoot("INBOX")
+	if err != nil {
+		utils.Logger.Error("Error in getting quota for INBOX", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+	}
+
+	// Print quotas
+	for _, quota := range quotas {
+		for name, usage := range quota.Resources {
+			mailboxUsed[name+"_used"] = usage[0]
+			mailboxAvail[name+"_avail"] = usage[1]
+		}
+	}
+
+	return metricname, namespacename, mailboxUsed, mailboxAvail
+}
+
 // put metrics description in description channel
 func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- valuecollector.allMails
 	ch <- valuecollector.unseenMails
+	ch <- valuecollector.mailboxQuotaUsed
+	ch <- valuecollector.mailboxQuotaAvail
+	ch <- valuecollector.levelQuotaUsed
+	ch <- valuecollector.levelQuotaAvail
+	ch <- valuecollector.storageQuotaUsed
+	ch <- valuecollector.storageQuotaAvail
+	ch <- valuecollector.messageQuotaUsed
+	ch <- valuecollector.messageQuotaAvail
 }
 
 // collect values and put them in metrics channel
@@ -131,6 +213,53 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			var metricnameUnseenInbox []string
 			metricnameUnseenInbox = append(metricnameUnseenInbox, metricUnseenInbox, namespaceUnseenInbox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenInbox), metricnameUnseenInbox...)
+
+			qc := quota.NewClient(c)
+
+			// Check for server support
+			if quotaSupport, _ := qc.SupportQuota(); quotaSupport {
+				utils.Logger.Info("Fetching quota related metrics", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)))
+
+				metricMailboxQuotaUsed, namespaceMailboxQuotaUsed, countMailboxQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameMailboxQuotaUsed []string
+				metricnameMailboxQuotaUsed = append(metricnameMailboxQuotaUsed, metricMailboxQuotaUsed, namespaceMailboxQuotaUsed)
+				ch <- prometheus.MustNewConstMetric(valuecollector.mailboxQuotaUsed, prometheus.GaugeValue, float64(countMailboxQuotaUsed["MAILBOX_used"]), metricnameMailboxQuotaUsed...)
+
+				metricMailboxQuotaAvail, namespaceMailboxQuotaAvail, _, countMailboxQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameMailboxQuotaAvail []string
+				metricnameMailboxQuotaAvail = append(metricnameMailboxQuotaAvail, metricMailboxQuotaAvail, namespaceMailboxQuotaAvail)
+				ch <- prometheus.MustNewConstMetric(valuecollector.mailboxQuotaAvail, prometheus.GaugeValue, float64(countMailboxQuotaAvail["MAILBOX_avail"]), metricnameMailboxQuotaAvail...)
+
+				metricLevelQuotaUsed, namespaceLevelQuotaUsed, countLevelQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameLevelQuotaUsed []string
+				metricnameLevelQuotaUsed = append(metricnameLevelQuotaUsed, metricLevelQuotaUsed, namespaceLevelQuotaUsed)
+				ch <- prometheus.MustNewConstMetric(valuecollector.levelQuotaUsed, prometheus.GaugeValue, float64(countLevelQuotaUsed["LEVEL_used"]), metricnameLevelQuotaUsed...)
+
+				metricLevelQuotaAvail, namespaceLevelQuotaAvail, _, countLevelQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameLevelQuotaAvail []string
+				metricnameLevelQuotaAvail = append(metricnameLevelQuotaAvail, metricLevelQuotaAvail, namespaceLevelQuotaAvail)
+				ch <- prometheus.MustNewConstMetric(valuecollector.levelQuotaAvail, prometheus.GaugeValue, float64(countLevelQuotaAvail["LEVEL_avail"]), metricnameLevelQuotaAvail...)
+
+				metricStorageQuotaUsed, namespaceStorageQuotaUsed, countStorageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameStorageQuotaUsed []string
+				metricnameStorageQuotaUsed = append(metricnameStorageQuotaUsed, metricStorageQuotaUsed, namespaceStorageQuotaUsed)
+				ch <- prometheus.MustNewConstMetric(valuecollector.storageQuotaUsed, prometheus.GaugeValue, float64(countStorageQuotaUsed["STORAGE_used"]), metricnameStorageQuotaUsed...)
+
+				metricStorageQuotaAvail, namespaceStorageQuotaAvail, _, countStorageQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameStorageQuotaAvail []string
+				metricnameStorageQuotaAvail = append(metricnameStorageQuotaAvail, metricStorageQuotaAvail, namespaceStorageQuotaAvail)
+				ch <- prometheus.MustNewConstMetric(valuecollector.storageQuotaAvail, prometheus.GaugeValue, float64(countStorageQuotaAvail["STORAGE_avail"]), metricnameStorageQuotaAvail...)
+
+				metricMessageQuotaUsed, namespaceMessageQuotaUsed, countMessageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameMessageQuotaUsed []string
+				metricnameMessageQuotaUsed = append(metricnameMessageQuotaUsed, metricMessageQuotaUsed, namespaceMessageQuotaUsed)
+				ch <- prometheus.MustNewConstMetric(valuecollector.messageQuotaUsed, prometheus.GaugeValue, float64(countMessageQuotaUsed["MESSAGE_used"]), metricnameMessageQuotaUsed...)
+
+				metricMessageQuotaAvail, namespaceMessageQuotaAvail, _, countMessageQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				var metricnameMessageQuotaAvail []string
+				metricnameMessageQuotaAvail = append(metricnameMessageQuotaAvail, metricMessageQuotaAvail, namespaceMessageQuotaAvail)
+				ch <- prometheus.MustNewConstMetric(valuecollector.messageQuotaAvail, prometheus.GaugeValue, float64(countMessageQuotaAvail["MESSAGE_avail"]), metricnameMessageQuotaAvail...)
+			}
 
 			for _, f := range config.Accounts[account].Folders {
 
