@@ -10,7 +10,29 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 > **Note**  
 > This exporter is in early development and at the moment highly adjusted for my personal usecase.
 
-The exporter provides two metrics:
+The exporter provides eigth metrics, two main metrics are provided for all accounts, but six metrics are quota related and only provided if the server supports imap quota.
+
+If your account supports quota you can see in loglevel info (default) with the following log entry:
+
+```output
+{"level":"info","ts":"2023-08-17T14:45:21.399Z","caller":"valuecollect/valuecollector.go:221","msg":"Fetching quota related metrics","address":"jane.doe@example.com"}
+
+```
+
+The exposed metrics are the following:
+
+`imap_mailstat_mails_all_quantity`  
+`imap_mailstat_mails_unseen_quantity`  
+`imap_mailstat_mails_levelquotaavail_quantity` (only imap with quota support)  
+`imap_mailstat_mails_levelquotaused_quantity` (only imap with quota support)  
+`imap_mailstat_mails_mailboxquotaavail_quantity` (only imap with quota support)  
+`imap_mailstat_mails_mailboxquotaused_quantity` (only imap with quota support)  
+`imap_mailstat_mails_messagequotaavail_quantity` (only imap with quota support)  
+`imap_mailstat_mails_messagequotaused_quantity` (only imap with quota support)  
+`imap_mailstat_mails_storagequotaavail_kilobytes` (only imap with quota support)  
+`imap_mailstat_mails_storagequotaused_kilobytes` (only imap with quota support)  
+
+Example output:
 
 ```output
 # HELP imap_mailstat_mails_all_quantity The total number of mails in folder
@@ -21,6 +43,38 @@ imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jan
 imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
 imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
 imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
+# HELP imap_mailstat_mails_levelquotaavail_quantity How many levels are available according your quota
+# TYPE imap_mailstat_mails_levelquotaavail_quantity gauge
+imap_mailstat_mails_levelquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 3
+imap_mailstat_mails_levelquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 3
+# HELP imap_mailstat_mails_levelquotaused_quantity How many levels are used
+# TYPE imap_mailstat_mails_levelquotaused_quantity gauge
+imap_mailstat_mails_levelquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1
+imap_mailstat_mails_levelquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1
+# HELP imap_mailstat_mails_mailboxquotaavail_quantity How many mailboxes are available according your quota
+# TYPE imap_mailstat_mails_mailboxquotaavail_quantity gauge
+imap_mailstat_mails_mailboxquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 31
+imap_mailstat_mails_mailboxquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 31
+# HELP imap_mailstat_mails_mailboxquotaused_quantity How many mailboxes are used
+# TYPE imap_mailstat_mails_mailboxquotaused_quantity gauge
+imap_mailstat_mails_mailboxquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 0
+imap_mailstat_mails_mailboxquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
+# HELP imap_mailstat_mails_messagequotaavail_quantity How many messages available according your quota
+# TYPE imap_mailstat_mails_messagequotaavail_quantity gauge
+imap_mailstat_mails_messagequotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 62000
+imap_mailstat_mails_messagequotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 62000
+# HELP imap_mailstat_mails_messagequotaused_quantity How many messages are used
+# TYPE imap_mailstat_mails_messagequotaused_quantity gauge
+imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
+imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 4
+# HELP imap_mailstat_mails_storagequotaavail_kilobytes How many storage is available according your quota
+# TYPE imap_mailstat_mails_storagequotaavail_kilobytes gauge
+imap_mailstat_mails_storagequotaavail_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.048576e+06
+imap_mailstat_mails_storagequotaavail_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1.048576e+06
+# HELP imap_mailstat_mails_storagequotaused_kilobytes How many storage is used
+# TYPE imap_mailstat_mails_storagequotaused_kilobytes gauge
+imap_mailstat_mails_storagequotaused_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 35
+imap_mailstat_mails_storagequotaused_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 71
 # HELP imap_mailstat_mails_unseen_quantity The total number of unseen mails in folder
 # TYPE imap_mailstat_mails_unseen_quantity gauge
 imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
@@ -92,3 +146,7 @@ Releases will be available soon.
 ## License
 
 This project is licensed using MIT license, see [LICENSE](https://github.com/bt909/imap-mailstat-exporter/blob/main/LICENSE)
+
+## Trivia
+
+This exporter is used personally with e-mail accounts provided by my webhosting provider [1984.is](https://1984.is/) (IMAP without quota) and provided by my ISP [Deutsche Telekom AG](https://www.telekom.de) (T-Online Freemail, IMAP with quota support).
