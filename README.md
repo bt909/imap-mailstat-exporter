@@ -7,7 +7,7 @@ This is a prometheus exporter which gives you metrics for how many emails you ha
 
 Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
-> **Note**  
+> [!NOTE]
 > This exporter is in early development and at the moment highly adjusted for my personal usecase.
 
 The exporter provides eigth metrics, two main metrics are provided for all accounts, but six metrics are quota related and only provided if the server supports imap quota.
@@ -102,7 +102,10 @@ Usage of imap-mailstat-exporter:
 ## Configuration
 
 You can configure your accounts in a configfile in [toml](https://toml.io) format. You can find the example file in the folder `examples`. You can use
-commandline flag `-config=<path/configfile`> to specify where your configfile is located.
+commandline flag `-config=<path/configfile` to specify where your configfile is located.
+
+> [!IMPORTANT]
+> If you are using the container image, the default configfile used where you need to mount your config is `/home/nonroot/config/config.toml`.
 
 Example configuration, for one account, use only one account definition.
 
