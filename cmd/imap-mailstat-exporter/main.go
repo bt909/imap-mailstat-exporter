@@ -18,6 +18,7 @@ func main() {
 
 	flag.StringVar(&valuecollect.Configfile, "config", "./config/config.toml", "provide the configfile")
 	flag.StringVar(&valuecollect.Loglevel, "loglevel", "INFO", "provide the desired loglevel, INFO and ERROR are supported")
+	flag.BoolVar(&valuecollect.Oldestunseenfeature, "oldestunseendate", false, "enable metric with timestamp of oldest unseen mail")
 	flag.Parse()
 
 	utils.InitializeLogger(valuecollect.Loglevel)
