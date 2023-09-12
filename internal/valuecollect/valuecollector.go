@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"imap-mailstat-exporter/internal/configread"
 	"imap-mailstat-exporter/utils"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,7 @@ import (
 
 var Configfile string
 var Loglevel string
+var Oldestunseenfeature bool
 
 type imapStatsCollector struct {
 	allMails          *prometheus.Desc
@@ -31,6 +33,7 @@ type imapStatsCollector struct {
 	storageQuotaAvail *prometheus.Desc
 	messageQuotaUsed  *prometheus.Desc
 	messageQuotaAvail *prometheus.Desc
+	oldestUnseen      *prometheus.Desc
 }
 
 // provide metric "layout"
@@ -86,6 +89,11 @@ func NewImapStatsCollector() *imapStatsCollector {
 			"How many messages available according your quota",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
+		oldestUnseen: prometheus.NewDesc(
+			prometheus.BuildFQName("imap_mailstat", "mails_oldestunseen", "timestamp"),
+			"Timestamp in unix format of oldest unseen mail",
+			[]string{"mailboxname", "mailboxfoldername"}, nil,
+		),
 	}
 
 }
@@ -99,7 +107,7 @@ func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder 
 }
 
 // count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, messages uint32) {
+func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 	criteria := imap.NewSearchCriteria()
@@ -109,8 +117,28 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 		utils.Logger.Error("Error in searching unseen mails", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
 		return
 	}
+	// if feature flag is enabled and there are unseen mail ids, we try to get the date from the envelope header and convert to unix timestamp
+	if len(ids) > 0 && Oldestunseenfeature {
+		seqset := new(imap.SeqSet)
+		seqset.AddNum(ids...)
+		mails := make(chan *imap.Message, len(ids))
+		err := c.Fetch(seqset, []imap.FetchItem{imap.FetchEnvelope}, mails)
+		if err != nil {
+			utils.Logger.Error("Error in getting dates for unseen mails", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+			return
+		}
+		var dates []int64
+		for msg := range mails {
+			dates = append(dates, msg.Envelope.Date.Unix())
+			// this sort is to ensure first value is oldest
+			sort.Slice(dates, func(i, j int) bool {
+				return dates[i] < dates[j]
+			})
+			oldestunseen = dates[0]
+		}
+	}
 	messages = uint32(len(ids))
-	return metricname, namespacename, messages
+	return metricname, namespacename, messages, oldestunseen
 }
 
 // returns quota related values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
@@ -150,6 +178,7 @@ func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- valuecollector.storageQuotaAvail
 	ch <- valuecollector.messageQuotaUsed
 	ch <- valuecollector.messageQuotaAvail
+	ch <- valuecollector.oldestUnseen
 }
 
 // collect values and put them in metrics channel
@@ -209,10 +238,17 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmailsInbox), metricnameSeenInbox...)
 
-			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name)
+			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox, _ := countUnseen(c, selectedInbox, config.Accounts[account].Name)
 			var metricnameUnseenInbox []string
 			metricnameUnseenInbox = append(metricnameUnseenInbox, metricUnseenInbox, namespaceUnseenInbox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenInbox), metricnameUnseenInbox...)
+
+			metricOldestUnseenInbox, namespaceOldestUnseenInbox, _, timestampOldestUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name)
+			var metricnameOldestUnseenInbox []string
+			if timestampOldestUnseenInbox > 0 {
+				metricnameOldestUnseenInbox = append(metricnameOldestUnseenInbox, metricOldestUnseenInbox, namespaceOldestUnseenInbox)
+				ch <- prometheus.MustNewConstMetric(valuecollector.oldestUnseen, prometheus.GaugeValue, float64(timestampOldestUnseenInbox), metricnameOldestUnseenInbox...)
+			}
 
 			qc := quota.NewClient(c)
 
@@ -277,10 +313,17 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmails), metricnameSeen...)
 
-				metricUnseen, namespaceUnseen, countUnseen := countUnseen(c, selected, config.Accounts[account].Name)
+				metricUnseen, namespaceUnseen, countUnseenMails, _ := countUnseen(c, selected, config.Accounts[account].Name)
 				var metricnameUnseen []string
 				metricnameUnseen = append(metricnameUnseen, metricUnseen, namespaceUnseen)
-				ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseen), metricnameUnseen...)
+				ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenMails), metricnameUnseen...)
+
+				metricOldestUnseen, namespaceOldestUnseen, _, timestampOldestUnseen := countUnseen(c, selected, config.Accounts[account].Name)
+				if timestampOldestUnseen > 0 {
+					var metricnameOldestUnseen []string
+					metricnameOldestUnseen = append(metricnameOldestUnseen, metricOldestUnseen, namespaceOldestUnseen)
+					ch <- prometheus.MustNewConstMetric(valuecollector.oldestUnseen, prometheus.GaugeValue, float64(timestampOldestUnseen), metricnameOldestUnseen...)
+				}
 			}
 
 			if err := c.Logout(); err != nil {

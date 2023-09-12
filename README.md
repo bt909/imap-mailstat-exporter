@@ -10,12 +10,12 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 > [!NOTE]
 > This exporter is in early development and at the moment highly adjusted for my personal usecase.
 
-The exporter provides eigth metrics, two main metrics are provided for all accounts, but six metrics are quota related and only provided if the server supports imap quota.
+The exporter provides nine metrics, two main metrics are provided for all accounts, one metric can be enabled using a feature flag `-oldestunseendate` and six metrics are quota related and only provided if the server supports imap quota.
 
-If your account supports quota you can see in loglevel info (default) with the following log entry:
+If your account supports quota you can see in loglevel INFO (default) with the following log entry:
 
 ```output
-{"level":"info","ts":"2023-08-17T14:45:21.399Z","caller":"valuecollect/valuecollector.go:221","msg":"Fetching quota related metrics","address":"jane.doe@example.com"}
+{"level":"info","ts":"2023-08-17T14:45:21.399Z","caller":"valuecollect/valuecollector.go:257","msg":"Fetching quota related metrics","address":"jane.doe@example.com"}
 
 ```
 
@@ -31,6 +31,7 @@ The exposed metrics are the following:
 `imap_mailstat_mails_messagequotaused_quantity` (only imap with quota support)  
 `imap_mailstat_mails_storagequotaavail_kilobytes` (only imap with quota support)  
 `imap_mailstat_mails_storagequotaused_kilobytes` (only imap with quota support)  
+`imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `-oldestunseendate`)
 
 Example output:
 
@@ -67,6 +68,11 @@ imap_mailstat_mails_messagequotaavail_quantity{mailboxfoldername="INBOX",mailbox
 # TYPE imap_mailstat_mails_messagequotaused_quantity gauge
 imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
 imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 4
+# HELP imap_mailstat_mails_oldestunseen_timestamp Timestamp in unix format of oldest unseen mail
+# TYPE imap_mailstat_mails_oldestunseen_timestamp gauge
+imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.693660714e+09
+imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1.694538222e+09
+imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 1.69398128e+09
 # HELP imap_mailstat_mails_storagequotaavail_kilobytes How many storage is available according your quota
 # TYPE imap_mailstat_mails_storagequotaavail_kilobytes gauge
 imap_mailstat_mails_storagequotaavail_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.048576e+06
@@ -89,7 +95,7 @@ Metrics are available via http on port 8081/tcp on path `/metrics`.
 
 ## Commandline Options
 
-You have two available commandline options.
+You have three available commandline options.
 
 ```shell
 Usage of imap-mailstat-exporter:
@@ -97,6 +103,8 @@ Usage of imap-mailstat-exporter:
         provide the configfile (default "./config/config.toml")
   -loglevel string
         provide the desired loglevel, INFO and ERROR are supported (default "INFO")
+  -oldestunseendate
+        enable metric with timestamp of oldest unseen mail
 ```
 
 ## Configuration
