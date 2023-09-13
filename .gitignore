@@ -23,3 +23,6 @@ go.work
 # local config and wip
 config/config.toml
 *.bak
+
+# goreleaser local builds
+dist/
