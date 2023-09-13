@@ -151,8 +151,11 @@ If INFO is too noisy you can switch to ERROR level and only get information abou
 
 ## OCI Container Image
 
-Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. At the moment there are no releases, just latest or you can use the digest.
-Releases will be available soon.
+Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. Images are build for linux/amd64 and linux/arm64 for every release. Release versions are v*.*.* and the Container Images are without the `v` in front of the version, so use:
+
+```shell
+docker pull ghcr.io/bt909/imap-mailstat-exporter:*.*.*
+```
 
 ## License
 
