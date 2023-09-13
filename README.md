@@ -1,6 +1,6 @@
 # imap-mailstat-exporter
 
-[![publish](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml/badge.svg)](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish.yaml)
+[![publish](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish_latest_oci_image.yaml/badge.svg)](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish_latest_oci_image.yaml)
  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.  
