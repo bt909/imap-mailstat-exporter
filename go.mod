@@ -7,7 +7,7 @@ require (
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/prometheus/client_golang v1.16.0
-	go.uber.org/zap v1.25.0
+	go.uber.org/zap v1.26.0
 )
 
 require (
