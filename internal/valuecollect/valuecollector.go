@@ -204,10 +204,14 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			serverconnection.WriteString(":")
 			serverconnection.WriteString(fmt.Sprint(config.Accounts[account].Serverport))
 			if config.Accounts[account].Starttls {
-				c, _ = client.Dial(serverconnection.String())
+				c, err = client.Dial(serverconnection.String())
+				if err != nil {
+					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					return
+				}
 				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
-					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					utils.Logger.Error("failed to start TLS secured connection via StartTLS", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
 					return
 				}
 			} else {
