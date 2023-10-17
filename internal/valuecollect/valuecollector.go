@@ -4,8 +4,6 @@ package valuecollect
 import (
 	"crypto/tls"
 	"fmt"
-	"imap-mailstat-exporter/internal/configread"
-	"imap-mailstat-exporter/utils"
 	"sort"
 	"strings"
 	"sync"
@@ -16,6 +14,9 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+
+	"github.com/bt909/imap-mailstat-exporter/internal/configread"
+	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
 var Configfile string
@@ -202,8 +203,8 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			serverconnection.WriteString(config.Accounts[account].Serveraddress)
 			serverconnection.WriteString(":")
 			serverconnection.WriteString(fmt.Sprint(config.Accounts[account].Serverport))
-			if config.Accounts[account].Starttls == true {
-				c, err = client.Dial(serverconnection.String())
+			if config.Accounts[account].Starttls {
+				c, _ = client.Dial(serverconnection.String())
 				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
 					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))

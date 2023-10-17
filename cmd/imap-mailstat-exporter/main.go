@@ -4,13 +4,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"imap-mailstat-exporter/internal/valuecollect"
-	"imap-mailstat-exporter/utils"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
+
+	"github.com/bt909/imap-mailstat-exporter/internal/valuecollect"
+	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
 // main function just for the main prometheus exporter functions
