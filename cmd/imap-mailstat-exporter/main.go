@@ -2,10 +2,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -14,19 +15,31 @@ import (
 	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
+var (
+	name                = "imap-mailstat-exporter"
+	Version             = "0.1.0-alpha"
+	configfile          *string
+	loglevel            *string
+	oldestunseenfeature *bool
+)
+
 // main function just for the main prometheus exporter functions
 func main() {
 
-	flag.StringVar(&valuecollect.Configfile, "config", "./config/config.toml", "provide the configfile")
-	flag.StringVar(&valuecollect.Loglevel, "loglevel", "INFO", "provide the desired loglevel, INFO and ERROR are supported")
-	flag.BoolVar(&valuecollect.Oldestunseenfeature, "oldestunseendate", false, "enable metric with timestamp of oldest unseen mail")
-	flag.Parse()
+	var app = kingpin.New(name, "a prometheus-exporter to expose metrics about your mailboxes")
+	configfile = app.Flag("config.file", "provide the configfile").Envar("MAILSTAT_EXPORTER_CONFIGFILE").Default("./config/config.toml").Short('c').String()
+	loglevel = app.Flag("log.level", "provide the desired loglevel, INFO and ERROR are supported").Envar("MAILSTAT_EXPORTER_LOGLEVEL").Default("INFO").String()
+	oldestunseenfeature = app.Flag("oldestunseen.feature", "enable metric with timestamp of oldest unseen mail, default false").Envar("MAILSTAT_EXPORTER_OLDESTUNSEEN").Default("false").Bool()
+	app.Version(Version)
+	app.HelpFlag.Short('h')
+	app.VersionFlag.Short('v')
+	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	utils.InitializeLogger(valuecollect.Loglevel)
+	utils.InitializeLogger(*loglevel)
 	utils.Logger.Info("imap-mailstat-exporter started")
 
 	reg := prometheus.NewRegistry()
-	d := valuecollect.NewImapStatsCollector()
+	d := valuecollect.NewImapStatsCollector(*configfile, *loglevel, *oldestunseenfeature)
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()

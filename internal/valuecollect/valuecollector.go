@@ -19,26 +19,25 @@ import (
 	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
-var Configfile string
-var Loglevel string
-var Oldestunseenfeature bool
-
 type imapStatsCollector struct {
-	allMails          *prometheus.Desc
-	unseenMails       *prometheus.Desc
-	mailboxQuotaUsed  *prometheus.Desc
-	mailboxQuotaAvail *prometheus.Desc
-	levelQuotaUsed    *prometheus.Desc
-	levelQuotaAvail   *prometheus.Desc
-	storageQuotaUsed  *prometheus.Desc
-	storageQuotaAvail *prometheus.Desc
-	messageQuotaUsed  *prometheus.Desc
-	messageQuotaAvail *prometheus.Desc
-	oldestUnseen      *prometheus.Desc
+	allMails            *prometheus.Desc
+	unseenMails         *prometheus.Desc
+	mailboxQuotaUsed    *prometheus.Desc
+	mailboxQuotaAvail   *prometheus.Desc
+	levelQuotaUsed      *prometheus.Desc
+	levelQuotaAvail     *prometheus.Desc
+	storageQuotaUsed    *prometheus.Desc
+	storageQuotaAvail   *prometheus.Desc
+	messageQuotaUsed    *prometheus.Desc
+	messageQuotaAvail   *prometheus.Desc
+	oldestUnseen        *prometheus.Desc
+	configfile          string
+	loglevel            string
+	oldestunseenfeature bool
 }
 
 // provide metric "layout"
-func NewImapStatsCollector() *imapStatsCollector {
+func NewImapStatsCollector(configfile string, loglevel string, oldestunseenfeature bool) *imapStatsCollector {
 	return &imapStatsCollector{
 		allMails: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_all", "quantity"),
@@ -95,6 +94,9 @@ func NewImapStatsCollector() *imapStatsCollector {
 			"Timestamp in unix format of oldest unseen mail",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
+		configfile:          configfile,
+		loglevel:            loglevel,
+		oldestunseenfeature: oldestunseenfeature,
 	}
 
 }
@@ -108,7 +110,7 @@ func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder 
 }
 
 // count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
+func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname string, oldestunseenfeature bool) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 	criteria := imap.NewSearchCriteria()
@@ -119,7 +121,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 		return
 	}
 	// if feature flag is enabled and there are unseen mail ids, we try to get the date from the envelope header and convert to unix timestamp
-	if len(ids) > 0 && Oldestunseenfeature {
+	if len(ids) > 0 && oldestunseenfeature {
 		seqset := new(imap.SeqSet)
 		seqset.AddNum(ids...)
 		mails := make(chan *imap.Message, len(ids))
@@ -184,8 +186,7 @@ func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // collect values and put them in metrics channel
 func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
-	utils.InitializeLogger(Loglevel)
-	config := configread.GetConfig(Configfile)
+	config := configread.GetConfig(valuecollector.configfile)
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
 	wg.Add(sliceLength)
@@ -245,12 +246,12 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmailsInbox), metricnameSeenInbox...)
 
-			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox, _ := countUnseen(c, selectedInbox, config.Accounts[account].Name)
+			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox, _ := countUnseen(c, selectedInbox, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 			var metricnameUnseenInbox []string
 			metricnameUnseenInbox = append(metricnameUnseenInbox, metricUnseenInbox, namespaceUnseenInbox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenInbox), metricnameUnseenInbox...)
 
-			metricOldestUnseenInbox, namespaceOldestUnseenInbox, _, timestampOldestUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name)
+			metricOldestUnseenInbox, namespaceOldestUnseenInbox, _, timestampOldestUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 			var metricnameOldestUnseenInbox []string
 			if timestampOldestUnseenInbox > 0 {
 				metricnameOldestUnseenInbox = append(metricnameOldestUnseenInbox, metricOldestUnseenInbox, namespaceOldestUnseenInbox)
@@ -320,12 +321,12 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmails), metricnameSeen...)
 
-				metricUnseen, namespaceUnseen, countUnseenMails, _ := countUnseen(c, selected, config.Accounts[account].Name)
+				metricUnseen, namespaceUnseen, countUnseenMails, _ := countUnseen(c, selected, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 				var metricnameUnseen []string
 				metricnameUnseen = append(metricnameUnseen, metricUnseen, namespaceUnseen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenMails), metricnameUnseen...)
 
-				metricOldestUnseen, namespaceOldestUnseen, _, timestampOldestUnseen := countUnseen(c, selected, config.Accounts[account].Name)
+				metricOldestUnseen, namespaceOldestUnseen, _, timestampOldestUnseen := countUnseen(c, selected, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 				if timestampOldestUnseen > 0 {
 					var metricnameOldestUnseen []string
 					metricnameOldestUnseen = append(metricnameOldestUnseen, metricOldestUnseen, namespaceOldestUnseen)
