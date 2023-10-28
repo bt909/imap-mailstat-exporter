@@ -232,6 +232,8 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 			utils.Logger.Info("IMAP Login", zap.String("duration:", fmt.Sprint(time.Since(startLogin))), zap.String("address", config.Accounts[account].Mailaddress))
 
+			defer c.Logout()
+
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
 				utils.Logger.Error("failed to select", zap.String("folder", "Inbox"), zap.Error(err))
@@ -331,10 +333,6 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 			}
 
-			if err := c.Logout(); err != nil {
-				utils.Logger.Error("failed to logout", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
-				return
-			}
 			utils.Logger.Info("Metric fetch", zap.String("duration:", fmt.Sprint(time.Since(start))), zap.String("address", config.Accounts[account].Mailaddress))
 		}(account)
 	}
