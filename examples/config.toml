@@ -1,7 +1,7 @@
 # This is a example configfile.  
 # You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
-# If you put you config elsewhere you can use the commandline flag -config=<path/configfile> to specify where your config is.
+# If you put you config elsewhere you can use the commandline flag --config.file="<path/configfile>" to specify where your config is.
 
 [[Accounts]]
 name = "Jane Mailbox" # mailbox, you can set as you like, will be used as metric label (whitespace are replaced by underscore)
