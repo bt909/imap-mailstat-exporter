@@ -8,7 +8,7 @@ This is a prometheus exporter which gives you metrics for how many emails you ha
 Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
 > [!NOTE]
-> This exporter is in early development and at the moment highly adjusted for my personal usecase.
+> This exporter is in early development and at the moment highly adjusted for my personal usecase. As it not reached 1.0.0 yet, there may are breaking changes at any time. Keep an eye on the [CHANGELOG](https://github.com/bt909/imap-mailstat-exporter/blob/main/CHANGELOG.md) for information.
 
 The exporter provides nine metrics, two main metrics are provided for all accounts, one metric can be enabled using a feature flag `-oldestunseendate` and six metrics are quota related and only provided if the server supports imap quota.
 
@@ -31,7 +31,7 @@ The exposed metrics are the following:
 `imap_mailstat_mails_messagequotaused_quantity` (only imap with quota support)  
 `imap_mailstat_mails_storagequotaavail_kilobytes` (only imap with quota support)  
 `imap_mailstat_mails_storagequotaused_kilobytes` (only imap with quota support)  
-`imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `-oldestunseendate`)
+`imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 Example output:
 
@@ -95,6 +95,28 @@ Metrics are available via http on port 8081/tcp on path `/metrics`.
 
 ## Commandline Options
 
+### version 0.1.0 (not yet released, about to come)
+
+You have three important commandline options. The information of the commandline flags can also be provided as environment variables.  
+
+```shell
+usage: imap-mailstat-exporter [<flags>]
+
+a prometheus-exporter to expose metrics about your mailboxes
+
+
+Flags:
+  -h, --[no-]help         Show context-sensitive help (also try --help-long and --help-man).
+  -c, --config.file="./config/config.toml"  
+                          provide the configfile ($MAILSTAT_EXPORTER_CONFIGFILE)
+      --log.level="INFO"  provide the desired loglevel, INFO and ERROR are supported ($MAILSTAT_EXPORTER_LOGLEVEL)
+      --[no-]oldestunseen.feature  
+                          enable metric with timestamp of oldest unseen mail, default false ($MAILSTAT_EXPORTER_OLDESTUNSEEN)
+  -v, --[no-]version      Show application version.
+```
+
+### Version 0.0.1
+
 You have three available commandline options.
 
 ```shell
@@ -110,7 +132,7 @@ Usage of imap-mailstat-exporter:
 ## Configuration
 
 You can configure your accounts in a configfile in [toml](https://toml.io) format. You can find the example file in the folder `examples`. You can use
-commandline flag `-config=<path/configfile` to specify where your configfile is located.
+commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0, not yet released) to specify where your configfile is located.
 
 > [!IMPORTANT]
 > If you are using the container image, the default configfile used where you need to mount your config is `/home/nonroot/config/config.toml`.
@@ -121,7 +143,7 @@ Example configuration, for one account, use only one account definition.
 # This is a example configfile.  
 # You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
-# If you put you config elsewhere you can use the commandline flag -config=<path/configfile> to specify where your config is.
+# If you put you config elsewhere you can use the commandline flag --config.file="<path/configfile>" to specify where your config is.
 
 [[Accounts]]
 name = "Jane Mailbox" # mailbox, you can set as you like, will be used as metric label (whitespace are replaced by underscore)
@@ -147,7 +169,7 @@ additionalfolders = ["Trash", "Spam"]
 ## Loglevel
 
 At the moment INFO (default) and ERROR are available. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
-If INFO is too noisy you can switch to ERROR level and only get information about errors by using commandline flag `-loglevel ERROR`.
+If INFO is too noisy you can switch to ERROR level and only get information about errors by using commandline flag `-loglevel ERROR` (version 0.0.1), or `--log.level="ERROR"` (version 0.1.0, not yet released).
 
 ## OCI Container Image
 
@@ -156,6 +178,8 @@ Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. Images are build 
 ```shell
 docker pull ghcr.io/bt909/imap-mailstat-exporter:*.*.*
 ```
+
+The tag `latest` is following main branch and not related to the releases. This behavior will stay until release 1.0.0.
 
 ## License
 
