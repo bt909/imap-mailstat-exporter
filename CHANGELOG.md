@@ -5,10 +5,11 @@
 
 * [FEATURE]: add basic auth and http/2 (TLS secured) connection by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
 * [FEATURE]: add possibility to configure metrics path and listen address and port by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
+* [CHORE]: update module github.com/prometheus/common to from v0.44.0 to v0.45.0 https://github.com/bt909/imap-mailstat-exporter/pull/34
 * [CHORE]: bump to golang 1.21 and rename some internal things https://github.com/bt909/imap-mailstat-exporter/pull/31
 * [CHORE]: update module github.com/prometheus/client_golang from v0.16.0 to v1.17.0 https://github.com/bt909/imap-mailstat-exporter/pull/30
 * [CHORE]: update module go.uber.org/zap from v1.25.0 to v1.26.0 https://github.com/bt909/imap-mailstat-exporter/pull/29
 
-# 0.0.1
+# 0.0.1 / 2023-09-14
 
 * [FEAT]: first release
