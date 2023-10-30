@@ -1,0 +1,8 @@
+---
+# this is a very basic snipped of a Prometheus scrape job, I use this in my docker-compose setup
+scrape_configs:
+  - job_name: "mailstats"
+    scrape_interval: 600s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['imap-mailstat-exporter:8081']
