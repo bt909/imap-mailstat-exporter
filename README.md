@@ -10,12 +10,14 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 > [!NOTE]
 > This exporter is in early development and at the moment highly adjusted for my personal usecase. As it not reached 1.0.0 yet, there may are breaking changes at any time. Keep an eye on the [CHANGELOG](https://github.com/bt909/imap-mailstat-exporter/blob/main/CHANGELOG.md) for information.
 
-The exporter provides nine metrics, two main metrics are provided for all accounts, one metric can be enabled using a feature flag `-oldestunseendate` and six metrics are quota related and only provided if the server supports imap quota.
+As this exporter is using [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) since 0.1.0 (not yet released), you can also configure basic auth, or TLS secured connection to the exporter using http/2, for more information visit the [configuration page of exporter-toolkit](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
+
+The exporter provides nine metrics, two main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature` and six metrics are quota related and only provided if the server supports imap quota.
 
 If your account supports quota you can see in loglevel INFO (default) with the following log entry:
 
 ```output
-{"level":"info","ts":"2023-08-17T14:45:21.399Z","caller":"valuecollect/valuecollector.go:257","msg":"Fetching quota related metrics","address":"jane.doe@example.com"}
+ts=2023-10-30T22:12:27.376Z caller=valuecollector.go:266 level=info msg="Fetching quota related metrics" address=jane.doe@example.com
 
 ```
 
@@ -91,13 +93,13 @@ imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname=
 imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
 ```
 
-Metrics are available via http on port 8081/tcp on path `/metrics`.
+Metrics are available via http (or https if configured) on port 8081/tcp on path `/metrics` as default, but you can configure this of you want to change.
 
 ## Commandline Options
 
 ### version 0.1.0 (not yet released, about to come)
 
-You have three important commandline options. The information of the commandline flags can also be provided as environment variables.  
+You have several commandline options. Three of them can also be set via environment variables, if you like.  
 
 ```shell
 usage: imap-mailstat-exporter [<flags>]
@@ -106,13 +108,21 @@ a prometheus-exporter to expose metrics about your mailboxes
 
 
 Flags:
-  -h, --[no-]help         Show context-sensitive help (also try --help-long and --help-man).
+  -h, --[no-]help                Show context-sensitive help (also try --help-long and --help-man).
   -c, --config.file="./config/config.toml"  
-                          provide the configfile ($MAILSTAT_EXPORTER_CONFIGFILE)
-      --log.level="INFO"  provide the desired loglevel, INFO and ERROR are supported ($MAILSTAT_EXPORTER_LOGLEVEL)
+                                 Provide the configfile ($MAILSTAT_EXPORTER_CONFIGFILE)
       --[no-]oldestunseen.feature  
-                          enable metric with timestamp of oldest unseen mail, default false ($MAILSTAT_EXPORTER_OLDESTUNSEEN)
-  -v, --[no-]version      Show application version.
+                                 Enable metric with timestamp of oldest unseen mail, default false ($MAILSTAT_EXPORTER_OLDESTUNSEEN)
+      --[no-]web.systemd-socket  Use systemd socket activation listeners instead of port listeners (Linux only).
+      --web.listen-address=:8081 ...  
+                                 Addresses on which to expose metrics and web interface. Repeatable for multiple addresses.
+      --web.config.file=""       [EXPERIMENTAL] Path to configuration file that can enable TLS or authentication. See:
+                                 https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+      --web.telemetry-path="/metrics"  
+                                 Path under which to expose the IMAP mailstat Prometheus metrics ($MAILSTAT_EXPORTER_WEB_TELEMETRY_PATH)
+  -v, --[no-]version             Show application version.
+      --log.level=info           Only log messages with the given severity or above. One of: [debug, info, warn, error]
+      --log.format=logfmt        Output format of log messages. One of: [logfmt, json]
 ```
 
 ### Version 0.0.1
@@ -168,7 +178,7 @@ additionalfolders = ["Trash", "Spam"]
 
 ## Loglevel
 
-At the moment INFO (default) and ERROR are available. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
+At the moment INFO (default) and ERROR are used. WARN and DEBUG are available, but I don't output anything on these levels yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
 If INFO is too noisy you can switch to ERROR level and only get information about errors by using commandline flag `-loglevel ERROR` (version 0.0.1), or `--log.level="ERROR"` (version 0.1.0, not yet released).
 
 ## OCI Container Image

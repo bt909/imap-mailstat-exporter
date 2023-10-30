@@ -2,71 +2,80 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/alecthomas/kingpin/v2"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.uber.org/zap"
+	"github.com/prometheus/common/promlog"
+	"github.com/prometheus/common/promlog/flag"
+	"github.com/prometheus/exporter-toolkit/web"
+	"github.com/prometheus/exporter-toolkit/web/kingpinflag"
 
 	"github.com/bt909/imap-mailstat-exporter/internal/valuecollect"
-	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
 var (
 	name                = "imap-mailstat-exporter"
 	Version             = "0.1.0-alpha"
 	configfile          *string
-	loglevel            *string
 	oldestunseenfeature *bool
+	logger              = promlog.New(&promlog.Config{})
 )
 
 // main function just for the main prometheus exporter functions
 func main() {
 
 	var app = kingpin.New(name, "a prometheus-exporter to expose metrics about your mailboxes")
-	configfile = app.Flag("config.file", "provide the configfile").Envar("MAILSTAT_EXPORTER_CONFIGFILE").Default("./config/config.toml").Short('c').String()
-	loglevel = app.Flag("log.level", "provide the desired loglevel, INFO and ERROR are supported").Envar("MAILSTAT_EXPORTER_LOGLEVEL").Default("INFO").String()
-	oldestunseenfeature = app.Flag("oldestunseen.feature", "enable metric with timestamp of oldest unseen mail, default false").Envar("MAILSTAT_EXPORTER_OLDESTUNSEEN").Default("false").Bool()
+	configfile = app.Flag("config.file", "Provide the configfile").Envar("MAILSTAT_EXPORTER_CONFIGFILE").Default("./config/config.toml").Short('c').String()
+	oldestunseenfeature = app.Flag("oldestunseen.feature", "Enable metric with timestamp of oldest unseen mail, default false").Envar("MAILSTAT_EXPORTER_OLDESTUNSEEN").Default("false").Bool()
+	toolkitFlags := kingpinflag.AddFlags(app, ":8081")
+	metricsPath := app.Flag("web.telemetry-path", "Path under which to expose the IMAP mailstat Prometheus metrics").Envar("MAILSTAT_EXPORTER_WEB_TELEMETRY_PATH").Default("/metrics").String()
 	app.Version(Version)
 	app.HelpFlag.Short('h')
 	app.VersionFlag.Short('v')
+
+	promlogConfig := &promlog.Config{}
+	flag.AddFlags(app, promlogConfig)
+
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	utils.InitializeLogger(*loglevel)
-	utils.Logger.Info("imap-mailstat-exporter started")
+	logger = promlog.New(promlogConfig)
+
+	level.Info(logger).Log("msg", "Starting imap-mailstat-exporter", "Version", Version)
 
 	reg := prometheus.NewRegistry()
-	d := valuecollect.NewImapStatsCollector(*configfile, *loglevel, *oldestunseenfeature)
+	d := valuecollect.NewImapStatsCollector(*configfile, logger, *oldestunseenfeature)
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-	mux.Handle("/metrics", promHandler)
+	mux.Handle(*metricsPath, promHandler)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, ` <!DOCTYPE html>
+		w.Write([]byte(` <!DOCTYPE html>
 		<html>
+		<head><title>imap-mailstat-exporter</title></head>
 		<body>
-		Hello, this is imap-mailstat-exporter, for metrics check
-		<a href="/metrics">metrics endpoint</a>
-        for code check <a href="https://github.com/bt909/imap-mailstat-exporter" target="_blank"> the github repository</a>
-		and for healthchecks you can use <a href="/healthz"> a healthz endpoint</>.
+		<h1>imap-mailstat-exporter</h1>
+		<p><a href='` + *metricsPath + `'>Metrics</a></p>
+		<p><a href="/healthz">Health</a></p>
+		<p><a href="https://github.com/bt909/imap-mailstat-exporter" target="_blank">Code</a></p>
 		</body>
-		</html>`)
+		</html>`))
 	})
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, ` <!DOCTYPE html>
+		w.Write([]byte(` <!DOCTYPE html>
 		<html>
 		<body>
 		imap-mailstat-exporter is healthy
 		</body>
-		</html>`)
+		</html>`))
 	})
 
-	port := 8081
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
-		utils.Logger.Fatal("cannot start exporter: %s", zap.Error(err))
+	server := &http.Server{Handler: mux}
+	if err := web.ListenAndServe(server, toolkitFlags, logger); err != nil {
+		level.Error(logger).Log("msg", "Cannot start exporter")
 	}
 }

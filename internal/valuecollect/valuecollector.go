@@ -12,11 +12,11 @@ import (
 	"github.com/emersion/go-imap"
 	quota "github.com/emersion/go-imap-quota"
 	"github.com/emersion/go-imap/client"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/zap"
 
 	"github.com/bt909/imap-mailstat-exporter/internal/configread"
-	"github.com/bt909/imap-mailstat-exporter/utils"
 )
 
 type imapStatsCollector struct {
@@ -32,12 +32,12 @@ type imapStatsCollector struct {
 	messageQuotaAvail   *prometheus.Desc
 	oldestUnseen        *prometheus.Desc
 	configfile          string
-	loglevel            string
+	logger              log.Logger
 	oldestunseenfeature bool
 }
 
 // provide metric "layout"
-func NewImapStatsCollector(configfile string, loglevel string, oldestunseenfeature bool) *imapStatsCollector {
+func NewImapStatsCollector(configfile string, logger log.Logger, oldestunseenfeature bool) *imapStatsCollector {
 	return &imapStatsCollector{
 		allMails: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_all", "quantity"),
@@ -95,7 +95,7 @@ func NewImapStatsCollector(configfile string, loglevel string, oldestunseenfeatu
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		configfile:          configfile,
-		loglevel:            loglevel,
+		logger:              logger,
 		oldestunseenfeature: oldestunseenfeature,
 	}
 
@@ -110,14 +110,14 @@ func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder 
 }
 
 // count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname string, oldestunseenfeature bool) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
+func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, logger log.Logger, mailboxname string, oldestunseenfeature bool) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 	criteria := imap.NewSearchCriteria()
 	criteria.WithoutFlags = []string{imap.SeenFlag}
 	ids, err := c.Search(criteria)
 	if err != nil {
-		utils.Logger.Error("Error in searching unseen mails", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+		level.Error(logger).Log("msg", "Error in searching mails", "mailboxname", mailboxname)
 		return
 	}
 	// if feature flag is enabled and there are unseen mail ids, we try to get the date from the envelope header and convert to unix timestamp
@@ -127,7 +127,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 		mails := make(chan *imap.Message, len(ids))
 		err := c.Fetch(seqset, []imap.FetchItem{imap.FetchEnvelope}, mails)
 		if err != nil {
-			utils.Logger.Error("Error in getting dates for unseen mails", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+			level.Error(logger).Log("msg", "Error in getting dates for unseen mails", "mailboxname", mailboxname)
 			return
 		}
 		var dates []int64
@@ -145,7 +145,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, mailboxname stri
 }
 
 // returns quota related values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
+func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger log.Logger, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 
@@ -155,7 +155,7 @@ func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, mailboxname s
 	// Retrieve quotas for INBOX
 	quotas, err := qc.GetQuotaRoot("INBOX")
 	if err != nil {
-		utils.Logger.Error("Error in getting quota for INBOX", zap.String("mailboxname", fmt.Sprint(mailboxname)), zap.Error(err))
+		level.Error(logger).Log("msg", "Error in getting quota for INBOX", "mailboxname", mailboxname)
 	}
 
 	// put quota values in return values (index 0 is used, index 1 is available)
@@ -195,7 +195,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 		start := time.Now()
 		go func(account int) {
 			defer wg.Done()
-			utils.Logger.Info("Start metrics fetch", zap.String("address", config.Accounts[account].Mailaddress), zap.String("server", config.Accounts[account].Serveraddress))
+			level.Info(valuecollector.logger).Log("msg", "Start metrics fetch", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 
 			var serverconnection strings.Builder
 			var c *client.Client
@@ -207,19 +207,19 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			if config.Accounts[account].Starttls {
 				c, err = client.Dial(serverconnection.String())
 				if err != nil {
-					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					level.Error(valuecollector.logger).Log("msg", "Failed to dial IMAP server", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 					return
 				}
 				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
-					utils.Logger.Error("failed to start TLS secured connection via StartTLS", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					level.Error(valuecollector.logger).Log("msg", "Failed to start TLS secured connection via StartTLS", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 					return
 				}
 			} else {
 				c, err = client.DialTLS(serverconnection.String(), nil)
-				utils.Logger.Info("Connection setup", zap.String("duration", fmt.Sprint(time.Since(start))), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)))
+				level.Info(valuecollector.logger).Log("msg", "Connection setup", "duration", time.Since(start), "address", config.Accounts[account].Mailaddress)
 				if err != nil {
-					utils.Logger.Error("failed to dial IMAP server", zap.String("server", fmt.Sprint(config.Accounts[account].Serveraddress)), zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+					level.Error(valuecollector.logger).Log("msg", "Failed to dial server via TLS", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 					return
 				}
 			}
@@ -228,16 +228,16 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			startLogin := time.Now()
 			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
-				utils.Logger.Error("failed to login", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.Error(err))
+				level.Error(valuecollector.logger).Log("msg", "Failed to login", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 				return
 			}
-			utils.Logger.Info("IMAP Login", zap.String("duration:", fmt.Sprint(time.Since(startLogin))), zap.String("address", config.Accounts[account].Mailaddress))
+			level.Info(valuecollector.logger).Log("msg", "IMAP login", "duration", time.Since(startLogin), "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
 
 			defer c.Logout()
 
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
-				utils.Logger.Error("failed to select", zap.String("folder", "Inbox"), zap.Error(err))
+				level.Error(valuecollector.logger).Log("msg", "Failed to select", "folder", "Inbox", "address", config.Accounts[account].Mailaddress)
 				return
 			}
 
@@ -246,12 +246,12 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmailsInbox), metricnameSeenInbox...)
 
-			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox, _ := countUnseen(c, selectedInbox, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
+			metricUnseenInbox, namespaceUnseenInbox, countUnseenInbox, _ := countUnseen(c, selectedInbox, valuecollector.logger, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 			var metricnameUnseenInbox []string
 			metricnameUnseenInbox = append(metricnameUnseenInbox, metricUnseenInbox, namespaceUnseenInbox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenInbox), metricnameUnseenInbox...)
 
-			metricOldestUnseenInbox, namespaceOldestUnseenInbox, _, timestampOldestUnseenInbox := countUnseen(c, selectedInbox, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
+			metricOldestUnseenInbox, namespaceOldestUnseenInbox, _, timestampOldestUnseenInbox := countUnseen(c, selectedInbox, valuecollector.logger, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 			var metricnameOldestUnseenInbox []string
 			if timestampOldestUnseenInbox > 0 {
 				metricnameOldestUnseenInbox = append(metricnameOldestUnseenInbox, metricOldestUnseenInbox, namespaceOldestUnseenInbox)
@@ -262,44 +262,44 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			// Check for server support and set metrics only for accounts with metrics available
 			if quotaSupport, _ := qc.SupportQuota(); quotaSupport {
-				utils.Logger.Info("Fetching quota related metrics", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)))
+				level.Info(valuecollector.logger).Log("msg", "Fetching quota related metrics", "address", config.Accounts[account].Mailaddress)
 
-				metricMailboxQuotaUsed, namespaceMailboxQuotaUsed, countMailboxQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricMailboxQuotaUsed, namespaceMailboxQuotaUsed, countMailboxQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameMailboxQuotaUsed []string
 				metricnameMailboxQuotaUsed = append(metricnameMailboxQuotaUsed, metricMailboxQuotaUsed, namespaceMailboxQuotaUsed)
 				ch <- prometheus.MustNewConstMetric(valuecollector.mailboxQuotaUsed, prometheus.GaugeValue, float64(countMailboxQuotaUsed["MAILBOX_used"]), metricnameMailboxQuotaUsed...)
 
-				metricMailboxQuotaAvail, namespaceMailboxQuotaAvail, _, countMailboxQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricMailboxQuotaAvail, namespaceMailboxQuotaAvail, _, countMailboxQuotaAvail := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameMailboxQuotaAvail []string
 				metricnameMailboxQuotaAvail = append(metricnameMailboxQuotaAvail, metricMailboxQuotaAvail, namespaceMailboxQuotaAvail)
 				ch <- prometheus.MustNewConstMetric(valuecollector.mailboxQuotaAvail, prometheus.GaugeValue, float64(countMailboxQuotaAvail["MAILBOX_avail"]), metricnameMailboxQuotaAvail...)
 
-				metricLevelQuotaUsed, namespaceLevelQuotaUsed, countLevelQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricLevelQuotaUsed, namespaceLevelQuotaUsed, countLevelQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameLevelQuotaUsed []string
 				metricnameLevelQuotaUsed = append(metricnameLevelQuotaUsed, metricLevelQuotaUsed, namespaceLevelQuotaUsed)
 				ch <- prometheus.MustNewConstMetric(valuecollector.levelQuotaUsed, prometheus.GaugeValue, float64(countLevelQuotaUsed["LEVEL_used"]), metricnameLevelQuotaUsed...)
 
-				metricLevelQuotaAvail, namespaceLevelQuotaAvail, _, countLevelQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricLevelQuotaAvail, namespaceLevelQuotaAvail, _, countLevelQuotaAvail := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameLevelQuotaAvail []string
 				metricnameLevelQuotaAvail = append(metricnameLevelQuotaAvail, metricLevelQuotaAvail, namespaceLevelQuotaAvail)
 				ch <- prometheus.MustNewConstMetric(valuecollector.levelQuotaAvail, prometheus.GaugeValue, float64(countLevelQuotaAvail["LEVEL_avail"]), metricnameLevelQuotaAvail...)
 
-				metricStorageQuotaUsed, namespaceStorageQuotaUsed, countStorageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricStorageQuotaUsed, namespaceStorageQuotaUsed, countStorageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameStorageQuotaUsed []string
 				metricnameStorageQuotaUsed = append(metricnameStorageQuotaUsed, metricStorageQuotaUsed, namespaceStorageQuotaUsed)
 				ch <- prometheus.MustNewConstMetric(valuecollector.storageQuotaUsed, prometheus.GaugeValue, float64(countStorageQuotaUsed["STORAGE_used"]), metricnameStorageQuotaUsed...)
 
-				metricStorageQuotaAvail, namespaceStorageQuotaAvail, _, countStorageQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricStorageQuotaAvail, namespaceStorageQuotaAvail, _, countStorageQuotaAvail := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameStorageQuotaAvail []string
 				metricnameStorageQuotaAvail = append(metricnameStorageQuotaAvail, metricStorageQuotaAvail, namespaceStorageQuotaAvail)
 				ch <- prometheus.MustNewConstMetric(valuecollector.storageQuotaAvail, prometheus.GaugeValue, float64(countStorageQuotaAvail["STORAGE_avail"]), metricnameStorageQuotaAvail...)
 
-				metricMessageQuotaUsed, namespaceMessageQuotaUsed, countMessageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricMessageQuotaUsed, namespaceMessageQuotaUsed, countMessageQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameMessageQuotaUsed []string
 				metricnameMessageQuotaUsed = append(metricnameMessageQuotaUsed, metricMessageQuotaUsed, namespaceMessageQuotaUsed)
 				ch <- prometheus.MustNewConstMetric(valuecollector.messageQuotaUsed, prometheus.GaugeValue, float64(countMessageQuotaUsed["MESSAGE_used"]), metricnameMessageQuotaUsed...)
 
-				metricMessageQuotaAvail, namespaceMessageQuotaAvail, _, countMessageQuotaAvail := getMailboxUsed(qc, selectedInbox, config.Accounts[account].Name)
+				metricMessageQuotaAvail, namespaceMessageQuotaAvail, _, countMessageQuotaAvail := getMailboxUsed(qc, selectedInbox, valuecollector.logger, config.Accounts[account].Name)
 				var metricnameMessageQuotaAvail []string
 				metricnameMessageQuotaAvail = append(metricnameMessageQuotaAvail, metricMessageQuotaAvail, namespaceMessageQuotaAvail)
 				ch <- prometheus.MustNewConstMetric(valuecollector.messageQuotaAvail, prometheus.GaugeValue, float64(countMessageQuotaAvail["MESSAGE_avail"]), metricnameMessageQuotaAvail...)
@@ -312,7 +312,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				mboxfolder.WriteString(f)
 				selected, err := c.Select(mboxfolder.String(), true)
 				if err != nil {
-					utils.Logger.Error("failed to select", zap.String("address", fmt.Sprint(config.Accounts[account].Mailaddress)), zap.String("folder", mboxfolder.String()), zap.Error(err))
+					level.Error(valuecollector.logger).Log("msg", "Failed to select", "address", config.Accounts[account].Mailaddress, "folder", mboxfolder)
 					return
 				}
 
@@ -321,20 +321,19 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmails), metricnameSeen...)
 
-				metricUnseen, namespaceUnseen, countUnseenMails, _ := countUnseen(c, selected, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
+				metricUnseen, namespaceUnseen, countUnseenMails, _ := countUnseen(c, selected, valuecollector.logger, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 				var metricnameUnseen []string
 				metricnameUnseen = append(metricnameUnseen, metricUnseen, namespaceUnseen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.unseenMails, prometheus.GaugeValue, float64(countUnseenMails), metricnameUnseen...)
 
-				metricOldestUnseen, namespaceOldestUnseen, _, timestampOldestUnseen := countUnseen(c, selected, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
+				metricOldestUnseen, namespaceOldestUnseen, _, timestampOldestUnseen := countUnseen(c, selected, valuecollector.logger, config.Accounts[account].Name, valuecollector.oldestunseenfeature)
 				if timestampOldestUnseen > 0 {
 					var metricnameOldestUnseen []string
 					metricnameOldestUnseen = append(metricnameOldestUnseen, metricOldestUnseen, namespaceOldestUnseen)
 					ch <- prometheus.MustNewConstMetric(valuecollector.oldestUnseen, prometheus.GaugeValue, float64(timestampOldestUnseen), metricnameOldestUnseen...)
 				}
 			}
-
-			utils.Logger.Info("Metric fetch", zap.String("duration:", fmt.Sprint(time.Since(start))), zap.String("address", config.Accounts[account].Mailaddress))
+			level.Info(valuecollector.logger).Log("msg", "Metric fetch", "duration", time.Since(start), "address", config.Accounts[account].Mailaddress)
 		}(account)
 	}
 	wg.Wait()
