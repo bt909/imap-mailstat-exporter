@@ -36,22 +36,24 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 > [!IMPORTANT]
-> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable and the old metrics will be removed in 0.2.0. 
+> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable and the old metrics will be removed in 0.2.0.
 
 The exposed metrics since 0.1.0 (not yet released) are the following:
 
-`mailstat_fetch_duration_seconds`  
-`mailstat_mails_all`  
-`mailstat_mails_unseen`  
-`mailstat_level_quota_avail` (only imap with quota support)  
-`mailstat_level_quota_used` (only imap with quota support)  
-`mailstat_mailbox_quota_avail` (only imap with quota support)  
-`mailstat_mailbox_quota_used` (only imap with quota support)  
-`mailstat_message_quota_avail` (only imap with quota support)  
-`mailstat_message_quota_used` (only imap with quota support)  
-`mailstat_storage_quota_avail_bytes` (only imap with quota support)  
-`mailstat_storage_quota_used_bytes` (only imap with quota support)  
-`mailstat_mails_oldest_unseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)  
+metric | type | description | remarks
+-------|------|-------------|---------
+`mailstat_fetch_duration_seconds` | gauge |Duration for fetching the metrics for the given account |
+`mailstat_mails_all` | gauge | The total number of mails in folder |
+`mailstat_mails_unseen` | gauge | The total number of unseen mails in folder |
+`mailstat_level_quota_avail` | gauge | How many levels are available according your quota | only imap with quota support
+`mailstat_level_quota_used` | gauge | How many levels are used | only imap with quota support
+`mailstat_mailbox_quota_avail` | gauge | How many mailboxes are available according your quota | only imap with quota support
+`mailstat_mailbox_quota_used` | gauge |  How many mailboxes are used | only imap with quota support
+`mailstat_message_quota_avail` | gauge | How many messages available according your quota | only imap with quota support
+`mailstat_message_quota_used` | gauge | How many messages are used | only imap with quota support
+`mailstat_storage_quota_avail_bytes` | gauge | How many storage is available according your quota | only imap with quota support
+`mailstat_storage_quota_used_bytes` | gauge | How many storage is used | only imap with quota support
+`mailstat_mails_oldest_unseen_timestamp` | gauge | Timestamp in unix format of oldest unseen mail | only with enabled feature flag `--oldestunseen.feature`  
 
 Example output:
 
