@@ -12,7 +12,7 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
 As this exporter is using [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) since 0.1.0 (not yet released), you can also configure basic auth, or TLS secured connection to the exporter using http/2, for more information visit the [configuration page of exporter-toolkit](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
 
-The exporter provides nine metrics, two main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature` and six metrics are quota related and only provided if the server supports imap quota.
+The exporter provides ten metrics, three main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature` and six metrics are quota related and only provided if the server supports imap quota.
 
 If your account supports quota you can see in loglevel INFO (default) with the following log entry:
 
@@ -21,7 +21,7 @@ ts=2023-10-30T22:12:27.376Z caller=valuecollector.go:266 level=info msg="Fetchin
 
 ```
 
-The exposed metrics are the following:
+The exposed metrics were the following in version 0.0.1 and can be enabled by using commandline flag `--migration.mode`:
 
 `imap_mailstat_mails_all_quantity`  
 `imap_mailstat_mails_unseen_quantity`  
@@ -35,62 +35,78 @@ The exposed metrics are the following:
 `imap_mailstat_mails_storagequotaused_kilobytes` (only imap with quota support)  
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
+> [!IMPORTANT]
+> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable and the old metrics will be removed in 0.2.0.
+
+The exposed metrics since 0.1.0 (not yet released) are the following:
+
+metric | type | description | remarks
+-------|------|-------------|---------
+`mailstat_fetch_duration_seconds` | gauge |Duration for fetching the metrics for the given account |
+`mailstat_mails_all` | gauge | The total number of mails in folder |
+`mailstat_mails_unseen` | gauge | The total number of unseen mails in folder |
+`mailstat_level_quota_avail` | gauge | How many levels are available according your quota | only imap with quota support
+`mailstat_level_quota_used` | gauge | How many levels are used | only imap with quota support
+`mailstat_mailbox_quota_avail` | gauge | How many mailboxes are available according your quota | only imap with quota support
+`mailstat_mailbox_quota_used` | gauge |  How many mailboxes are used | only imap with quota support
+`mailstat_message_quota_avail` | gauge | How many messages available according your quota | only imap with quota support
+`mailstat_message_quota_used` | gauge | How many messages are used | only imap with quota support
+`mailstat_storage_quota_avail_bytes` | gauge | How many storage is available according your quota | only imap with quota support
+`mailstat_storage_quota_used_bytes` | gauge | How many storage is used | only imap with quota support
+`mailstat_mails_oldest_unseen_timestamp` | gauge | Timestamp in unix format of oldest unseen mail | only with enabled feature flag `--oldestunseen.feature`  
+
 Example output:
 
 ```output
-# HELP imap_mailstat_mails_all_quantity The total number of mails in folder
-# TYPE imap_mailstat_mails_all_quantity gauge
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 537
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1308
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 10
-imap_mailstat_mails_all_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 9
-# HELP imap_mailstat_mails_levelquotaavail_quantity How many levels are available according your quota
-# TYPE imap_mailstat_mails_levelquotaavail_quantity gauge
-imap_mailstat_mails_levelquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 3
-imap_mailstat_mails_levelquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 3
-# HELP imap_mailstat_mails_levelquotaused_quantity How many levels are used
-# TYPE imap_mailstat_mails_levelquotaused_quantity gauge
-imap_mailstat_mails_levelquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1
-imap_mailstat_mails_levelquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1
-# HELP imap_mailstat_mails_mailboxquotaavail_quantity How many mailboxes are available according your quota
-# TYPE imap_mailstat_mails_mailboxquotaavail_quantity gauge
-imap_mailstat_mails_mailboxquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 31
-imap_mailstat_mails_mailboxquotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 31
-# HELP imap_mailstat_mails_mailboxquotaused_quantity How many mailboxes are used
-# TYPE imap_mailstat_mails_mailboxquotaused_quantity gauge
-imap_mailstat_mails_mailboxquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 0
-imap_mailstat_mails_mailboxquotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
-# HELP imap_mailstat_mails_messagequotaavail_quantity How many messages available according your quota
-# TYPE imap_mailstat_mails_messagequotaavail_quantity gauge
-imap_mailstat_mails_messagequotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 62000
-imap_mailstat_mails_messagequotaavail_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 62000
-# HELP imap_mailstat_mails_messagequotaused_quantity How many messages are used
-# TYPE imap_mailstat_mails_messagequotaused_quantity gauge
-imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
-imap_mailstat_mails_messagequotaused_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 4
-# HELP imap_mailstat_mails_oldestunseen_timestamp Timestamp in unix format of oldest unseen mail
-# TYPE imap_mailstat_mails_oldestunseen_timestamp gauge
-imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.693660714e+09
-imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1.694538222e+09
-imap_mailstat_mails_oldestunseen_timestamp{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 1.69398128e+09
-# HELP imap_mailstat_mails_storagequotaavail_kilobytes How many storage is available according your quota
-# TYPE imap_mailstat_mails_storagequotaavail_kilobytes gauge
-imap_mailstat_mails_storagequotaavail_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.048576e+06
-imap_mailstat_mails_storagequotaavail_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1.048576e+06
-# HELP imap_mailstat_mails_storagequotaused_kilobytes How many storage is used
-# TYPE imap_mailstat_mails_storagequotaused_kilobytes gauge
-imap_mailstat_mails_storagequotaused_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 35
-imap_mailstat_mails_storagequotaused_kilobytes{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 71
-# HELP imap_mailstat_mails_unseen_quantity The total number of unseen mails in folder
-# TYPE imap_mailstat_mails_unseen_quantity gauge
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 0
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 0
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
-imap_mailstat_mails_unseen_quantity{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
+# HELP mailstat_fetch_duration_seconds Duration for fetching the metrics for the given account
+# TYPE mailstat_fetch_duration_seconds gauge
+mailstat_fetch_duration_seconds{mailboxname="Jane_Doe_Mailbox"} 1.303695723
+mailstat_fetch_duration_seconds{mailboxname="Jane_Mailbox"} 0.612008505
+# HELP mailstat_level_quota_avail How many levels are available according your quota
+# TYPE mailstat_level_quota_avail gauge
+mailstat_level_quota_avail{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 3000
+# HELP mailstat_level_quota_used How many levels are used
+# TYPE mailstat_level_quota_used gauge
+mailstat_level_quota_used{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1000
+# HELP mailstat_mailbox_quota_avail How many mailboxes are available according your quota
+# TYPE mailstat_mailbox_quota_avail gauge
+mailstat_mailbox_quota_avail{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 31000
+# HELP mailstat_mailbox_quota_used How many mailboxes are used
+# TYPE mailstat_mailbox_quota_used gauge
+mailstat_mailbox_quota_used{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 0
+# HELP mailstat_mails_all The total number of mails in folder
+# TYPE mailstat_mails_all gauge
+mailstat_mails_all{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 404
+mailstat_mails_all{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2
+mailstat_mails_all{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 5
+mailstat_mails_all{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+mailstat_mails_all{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 32
+mailstat_mails_all{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
+# HELP mailstat_mails_oldest_unseen_timestamp Timestamp in unix format of oldest unseen mail
+# TYPE mailstat_mails_oldest_unseen_timestamp gauge
+mailstat_mails_oldest_unseen_timestamp{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1.69878845e+09
+mailstat_mails_oldest_unseen_timestamp{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 1.698318945e+09
+# HELP mailstat_mails_unseen The total number of unseen mails in folder
+# TYPE mailstat_mails_unseen gauge
+mailstat_mails_unseen{mailboxfoldername="INBOX",mailboxname="Jane_Doe_Mailbox"} 1
+mailstat_mails_unseen{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 0
+mailstat_mails_unseen{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Doe_Mailbox"} 5
+mailstat_mails_unseen{mailboxfoldername="INBOX_Spam",mailboxname="Jane_Mailbox"} 0
+mailstat_mails_unseen{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Doe_Mailbox"} 0
+mailstat_mails_unseen{mailboxfoldername="INBOX_Trash",mailboxname="Jane_Mailbox"} 0
+# HELP mailstat_message_quota_avail How many messages available according your quota
+# TYPE mailstat_message_quota_avail gauge
+mailstat_message_quota_avail{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 6.2e+07
+# HELP mailstat_message_quota_used How many messages are used
+# TYPE mailstat_message_quota_used gauge
+mailstat_message_quota_used{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 2000
+# HELP mailstat_storage_quota_avail_bytes How many storage is available according your quota
+# TYPE mailstat_storage_quota_avail_bytes gauge
+mailstat_storage_quota_avail_bytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 1.048576e+09
+# HELP mailstat_storage_quota_used_bytes How many storage is used
+# TYPE mailstat_storage_quota_used_bytes gauge
+mailstat_storage_quota_used_bytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 35000
+
 ```
 
 Metrics are available via http (or https if configured) on port 8081/tcp on path `/metrics` as default, but you can configure this of you want to change.
@@ -113,6 +129,7 @@ Flags:
                                  Provide the configfile ($MAILSTAT_EXPORTER_CONFIGFILE)
       --[no-]oldestunseen.feature  
                                  Enable metric with timestamp of oldest unseen mail, default false ($MAILSTAT_EXPORTER_OLDESTUNSEEN)
+      --[no-]migration.mode      Enable old metric format, default false, WILL BE REMOVED IN version 0.2.0 ($MAILSTAT_EXPORTER_MIGRATIONMODE)
       --[no-]web.systemd-socket  Use systemd socket activation listeners instead of port listeners (Linux only).
       --web.listen-address=:8081 ...  
                                  Addresses on which to expose metrics and web interface. Repeatable for multiple addresses.
