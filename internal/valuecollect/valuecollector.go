@@ -19,8 +19,6 @@ import (
 	"github.com/bt909/imap-mailstat-exporter/internal/configread"
 )
 
-var Version string
-
 type imapStatsCollector struct {
 	up                   *prometheus.Desc
 	allMails             *prometheus.Desc
