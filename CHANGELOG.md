@@ -7,6 +7,8 @@ This version has some heavy changes, but these were things a thought about for a
 * [BREAKING CHANGE]: change logging behavior by switching to [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) and removing go.uber.org/zap as logging framework https://github.com/bt909/imap-mailstat-exporter/pull/33
 * [BREAKING CHANGE]: change command line handling by switching command line parsing to [kingpin v2](https://github.com/alecthomas/kingpin) https://github.com/bt909/imap-mailstat-exporter/pull/32
 
+* [CHANGE]: switch from CMD to ENTRYPOINT in Dockerfile to allow commandline arguments easily to be passed to the container https://github.com/bt909/imap-mailstat-exporter/pull/38
+
 * [FEATURE]: add a new metric named mailstat_fetch_duration_seconds https://github.com/bt909/imap-mailstat-exporter/pull/36
 * [FEATURE]: add basic auth and http/2 (TLS secured) connection by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
 * [FEATURE]: add possibility to configure metrics path and listen address and port by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
