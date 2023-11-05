@@ -12,7 +12,7 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
 As this exporter is using [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) since 0.1.0 (not yet released), you can also configure basic auth, or TLS secured connection to the exporter using http/2, for more information visit the [configuration page of exporter-toolkit](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
 
-The exporter provides ten metrics, three main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature` and six metrics are quota related and only provided if the server supports imap quota.
+The exporter provides 14 metrics, three main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature`, eigth metrics are quota related and only provided if the server supports imap quota and two informatial metrics.
 
 If your account supports quota you can see in loglevel INFO (default) with the following log entry:
 
@@ -42,7 +42,9 @@ The exposed metrics since 0.1.0 (not yet released) are the following:
 
 metric | type | description | remarks
 -------|------|-------------|---------
-`mailstat_fetch_duration_seconds` | gauge |Duration for fetching the metrics for the given account |
+`mailstat_info` | gauge | Info metric for imap-mailstat-exporter | 
+`mailstat_up` | gauge | Was talking to all accounts imap successfully | if value is 0: any account has a problem, check logs
+`mailstat_fetch_duration_seconds` | gauge | Duration for fetching the metrics for the given account |
 `mailstat_mails_all` | gauge | The total number of mails in folder |
 `mailstat_mails_unseen` | gauge | The total number of unseen mails in folder |
 `mailstat_level_quota_avail` | gauge | How many levels are available according your quota | only imap with quota support
@@ -62,6 +64,9 @@ Example output:
 # TYPE mailstat_fetch_duration_seconds gauge
 mailstat_fetch_duration_seconds{mailboxname="Jane_Doe_Mailbox"} 1.303695723
 mailstat_fetch_duration_seconds{mailboxname="Jane_Mailbox"} 0.612008505
+# HELP mailstat_info Info metric for imap-mailstat-exporter.
+# TYPE mailstat_info gauge
+mailstat_info{version="0.1.0"} 1
 # HELP mailstat_level_quota_avail How many levels are available according your quota
 # TYPE mailstat_level_quota_avail gauge
 mailstat_level_quota_avail{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 3000
@@ -106,6 +111,9 @@ mailstat_storage_quota_avail_bytes{mailboxfoldername="INBOX",mailboxname="Jane_M
 # HELP mailstat_storage_quota_used_bytes How many storage is used
 # TYPE mailstat_storage_quota_used_bytes gauge
 mailstat_storage_quota_used_bytes{mailboxfoldername="INBOX",mailboxname="Jane_Mailbox"} 35000
+# HELP mailstat_up Was talking to all accounts imap successfully.
+# TYPE mailstat_up gauge
+mailstat_up 1
 
 ```
 

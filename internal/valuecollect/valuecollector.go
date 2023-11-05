@@ -20,6 +20,7 @@ import (
 )
 
 type imapStatsCollector struct {
+	up                   *prometheus.Desc
 	allMails             *prometheus.Desc
 	unseenMails          *prometheus.Desc
 	mailboxQuotaUsed     *prometheus.Desc
@@ -43,68 +44,72 @@ type imapStatsCollector struct {
 	messageQuotaUsedOld  *prometheus.Desc
 	messageQuotaAvailOld *prometheus.Desc
 	oldestUnseenOld      *prometheus.Desc
+	info                 *prometheus.Desc
 	configfile           string
 	logger               log.Logger
 	oldestunseenfeature  bool
 	migrationmode        bool
+	version              string
 }
 
 // provide metric "layout"
-func NewImapStatsCollector(configfile string, logger log.Logger, oldestunseenfeature bool, migrationmode bool) *imapStatsCollector {
+func NewImapStatsCollector(configfile string, logger log.Logger, oldestunseenfeature bool, migrationmode bool, version string) *imapStatsCollector {
 	return &imapStatsCollector{
+		up:   prometheus.NewDesc("mailstat_up", "Was talking to all accounts imap successfully.", nil, nil),
+		info: prometheus.NewDesc("mailstat_info", "Info metric for imap-mailstat-exporter.", []string{"version"}, nil),
 		allMails: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "mails", "all"),
-			"The total number of mails in folder",
+			"The total number of mails in folder.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		unseenMails: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "mails", "unseen"),
-			"The total number of unseen mails in folder",
+			"The total number of unseen mails in folder.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		mailboxQuotaUsed: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "mailbox_quota", "used"),
-			"How many mailboxes are used",
+			"How many mailboxes are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		mailboxQuotaAvail: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "mailbox_quota", "avail"),
-			"How many mailboxes are available according your quota",
+			"How many mailboxes are available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		levelQuotaUsed: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "level_quota", "used"),
-			"How many levels are used",
+			"How many levels are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		levelQuotaAvail: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "level_quota", "avail"),
-			"How many levels are available according your quota",
+			"How many levels are available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaUsed: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "storage_quota", "used_bytes"),
-			"How many storage is used",
+			"How many storage is used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaAvail: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "storage_quota", "avail_bytes"),
-			"How many storage is available according your quota",
+			"How many storage is available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		messageQuotaUsed: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "message_quota", "used"),
-			"How many messages are used",
+			"How many messages are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		messageQuotaAvail: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "message_quota", "avail"),
-			"How many messages available according your quota",
+			"How many messages available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		oldestUnseen: prometheus.NewDesc(
 			prometheus.BuildFQName("mailstat", "mails", "oldest_unseen_timestamp"),
-			"Timestamp in unix format of oldest unseen mail",
+			"Timestamp in unix format of oldest unseen mail.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		fetchDuration: prometheus.NewDesc(
@@ -114,63 +119,64 @@ func NewImapStatsCollector(configfile string, logger log.Logger, oldestunseenfea
 		),
 		allMailsOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_all", "quantity"),
-			"The total number of mails in folder",
+			"The total number of mails in folder.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		unseenMailsOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_unseen", "quantity"),
-			"The total number of unseen mails in folder",
+			"The total number of unseen mails in folder.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		mailboxQuotaUsedOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_mailboxquotaused", "quantity"),
-			"How many mailboxes are used",
+			"How many mailboxes are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		mailboxQuotaAvailOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_mailboxquotaavail", "quantity"),
-			"How many mailboxes are available according your quota",
+			"How many mailboxes are available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		levelQuotaUsedOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_levelquotaused", "quantity"),
-			"How many levels are used",
+			"How many levels are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		levelQuotaAvailOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_levelquotaavail", "quantity"),
-			"How many levels are available according your quota",
+			"How many levels are available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaUsedOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaused", "kilobytes"),
-			"How many storage is used",
+			"How many storage is used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		storageQuotaAvailOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_storagequotaavail", "kilobytes"),
-			"How many storage is available according your quota",
+			"How many storage is available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		messageQuotaUsedOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_messagequotaused", "quantity"),
-			"How many messages are used",
+			"How many messages are used.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		messageQuotaAvailOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_messagequotaavail", "quantity"),
-			"How many messages available according your quota",
+			"How many messages available according your quota.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		oldestUnseenOld: prometheus.NewDesc(
 			prometheus.BuildFQName("imap_mailstat", "mails_oldestunseen", "timestamp"),
-			"Timestamp in unix format of oldest unseen mail",
+			"Timestamp in unix format of oldest unseen mail.",
 			[]string{"mailboxname", "mailboxfoldername"}, nil,
 		),
 		configfile:          configfile,
 		logger:              logger,
 		oldestunseenfeature: oldestunseenfeature,
 		migrationmode:       migrationmode,
+		version:             version,
 	}
 
 }
@@ -230,6 +236,7 @@ func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger log.Lo
 	quotas, err := qc.GetQuotaRoot("INBOX")
 	if err != nil {
 		level.Error(logger).Log("msg", "Error in getting quota for INBOX", "mailboxname", mailboxname)
+		return
 	}
 
 	// put quota values in return values (index 0 is used, index 1 is available, convert from kilobytes to bytes as common prometheus unit)
@@ -245,6 +252,8 @@ func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger log.Lo
 
 // put metrics description in description channel
 func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- valuecollector.up
+	ch <- valuecollector.info
 	ch <- valuecollector.allMails
 	ch <- valuecollector.unseenMails
 	ch <- valuecollector.mailboxQuotaUsed
@@ -273,6 +282,9 @@ func (valuecollector *imapStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 // collect values and put them in metrics channel
 func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	config := configread.GetConfig(valuecollector.configfile)
+	// set up variable to 1 and if any account has some errors it is set to 0 and used as up metric
+	up := 1
+	ch <- prometheus.MustNewConstMetric(valuecollector.info, prometheus.GaugeValue, 1, valuecollector.version)
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
 	wg.Add(sliceLength)
@@ -294,11 +306,13 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				c, err = client.Dial(serverconnection.String())
 				if err != nil {
 					level.Error(valuecollector.logger).Log("msg", "Failed to dial IMAP server", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
+					up = 0
 					return
 				}
 				tlsConfig := &tls.Config{ServerName: config.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
 					level.Error(valuecollector.logger).Log("msg", "Failed to start TLS secured connection via StartTLS", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
+					up = 0
 					return
 				}
 			} else {
@@ -306,6 +320,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				level.Info(valuecollector.logger).Log("msg", "Connection setup", "duration", time.Since(start), "address", config.Accounts[account].Mailaddress)
 				if err != nil {
 					level.Error(valuecollector.logger).Log("msg", "Failed to dial server via TLS", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
+					up = 0
 					return
 				}
 			}
@@ -315,6 +330,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			startLogin := time.Now()
 			if err := c.Login(config.Accounts[account].Username, config.Accounts[account].Password); err != nil {
 				level.Error(valuecollector.logger).Log("msg", "Failed to login", "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
+				up = 0
 				return
 			}
 			level.Info(valuecollector.logger).Log("msg", "IMAP login", "duration", time.Since(startLogin), "address", config.Accounts[account].Mailaddress, "server", config.Accounts[account].Serveraddress)
@@ -324,6 +340,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
 				level.Error(valuecollector.logger).Log("msg", "Failed to select", "folder", "Inbox", "address", config.Accounts[account].Mailaddress)
+				up = 0
 				return
 			}
 
@@ -432,6 +449,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				selected, err := c.Select(mboxfolder.String(), true)
 				if err != nil {
 					level.Error(valuecollector.logger).Log("msg", "Failed to select", "address", config.Accounts[account].Mailaddress, "folder", mboxfolder)
+					up = 0
 					return
 				}
 
@@ -466,4 +484,5 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 		}(account)
 	}
 	wg.Wait()
+	ch <- prometheus.MustNewConstMetric(valuecollector.up, prometheus.GaugeValue, float64(up))
 }

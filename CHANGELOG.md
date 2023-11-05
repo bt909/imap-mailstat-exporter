@@ -2,6 +2,7 @@
 
 This version has some heavy changes, but these were things a thought about for a while now and think this shouldn't be deferred for a long time. So now we have a big bang but the next ideas I have in mind are not that destructive.
 
+* [BREAKING CHANGE]: add info and up metric https://github.com/bt909/imap-mailstat-exporter/pull/37
 * [BREAKING CHANGE]: rename metrics for readability and follow some best practices https://github.com/bt909/imap-mailstat-exporter/pull/36
 * [BREAKING CHANGE]: change logging behavior by switching to [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) and removing go.uber.org/zap as logging framework https://github.com/bt909/imap-mailstat-exporter/pull/33
 * [BREAKING CHANGE]: change command line handling by switching command line parsing to [kingpin v2](https://github.com/alecthomas/kingpin) https://github.com/bt909/imap-mailstat-exporter/pull/32
