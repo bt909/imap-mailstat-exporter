@@ -42,7 +42,9 @@ The exposed metrics since 0.1.0 (not yet released) are the following:
 
 metric | type | description | remarks
 -------|------|-------------|---------
-`mailstat_fetch_duration_seconds` | gauge |Duration for fetching the metrics for the given account |
+`mailstat_fetch_duration_seconds` | gauge | Duration for fetching the metrics for the given account |
+`mailstat_info` | gauge | Info metric for imap-mailstat-exporter | 
+`mailstat_up` | gauge | Was talking to all accounts imap successfully | if value is 0 any account has a problem, check logs
 `mailstat_mails_all` | gauge | The total number of mails in folder |
 `mailstat_mails_unseen` | gauge | The total number of unseen mails in folder |
 `mailstat_level_quota_avail` | gauge | How many levels are available according your quota | only imap with quota support

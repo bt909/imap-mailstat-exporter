@@ -49,7 +49,7 @@ func main() {
 	level.Info(logger).Log("msg", "Starting imap-mailstat-exporter", "Version", Version)
 
 	reg := prometheus.NewRegistry()
-	d := valuecollect.NewImapStatsCollector(*configfile, logger, *oldestunseenfeature, *migrationmode)
+	d := valuecollect.NewImapStatsCollector(*configfile, logger, *oldestunseenfeature, *migrationmode, Version)
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()
