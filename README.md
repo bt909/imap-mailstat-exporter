@@ -36,7 +36,7 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 > [!IMPORTANT]
-> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable and the old metrics will be removed in 0.2.0.
+> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable is deprecated and the old metrics will be removed in version 0.2.0.
 
 The exposed metrics since 0.1.0 (not yet released) are the following:
 
@@ -203,8 +203,8 @@ additionalfolders = ["Trash", "Spam"]
 
 ## Loglevel
 
-At the moment INFO (default) and ERROR are used. WARN and DEBUG are available, but I don't output anything on these levels yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
-If INFO is too noisy you can switch to ERROR level and only get information about errors by using commandline flag `-loglevel ERROR` (version 0.0.1), or `--log.level="ERROR"` (version 0.1.0, not yet released).
+At the moment INFO (default), WARN and ERROR are used. DEBUG is available, but I don't output anything on this level yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
+If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0, not yet released).
 
 ## OCI Container Image
 
