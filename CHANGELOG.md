@@ -1,4 +1,4 @@
-# Unreleased
+# 0.1.0 / 2023-11-07
 
 This version has some heavy changes, but these were things a thought about for a while now and think this shouldn't be deferred for a long time. So now we have a big bang but the next ideas I have in mind are not that destructive.
 
@@ -9,6 +9,8 @@ This version has some heavy changes, but these were things a thought about for a
 
 * [CHANGE]: add deprecation warning in logs for migration mode https://github.com/bt909/imap-mailstat-exporter/pull/39
 * [CHANGE]: switch from CMD to ENTRYPOINT in Dockerfile to allow commandline arguments easily to be passed to the container https://github.com/bt909/imap-mailstat-exporter/pull/38
+
+* [DOCS]: add example dashboard https://github.com/bt909/imap-mailstat-exporter/pull/41
 
 * [FEATURE]: add up and info metric https://github.com/bt909/imap-mailstat-exporter/pull/37
 * [FEATURE]: add a new metric named mailstat_fetch_duration_seconds https://github.com/bt909/imap-mailstat-exporter/pull/36
