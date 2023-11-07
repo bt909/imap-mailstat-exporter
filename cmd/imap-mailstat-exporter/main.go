@@ -19,7 +19,7 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.1.0-beta"
+	Version             = "0.1.0"
 	configfile          *string
 	oldestunseenfeature *bool
 	migrationmode       *bool
