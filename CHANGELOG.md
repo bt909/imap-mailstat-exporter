@@ -16,6 +16,9 @@ This version has some heavy changes, but these were things a thought about for a
 * [FEATURE]: add a new metric named mailstat_fetch_duration_seconds https://github.com/bt909/imap-mailstat-exporter/pull/36
 * [FEATURE]: add basic auth and http/2 (TLS secured) connection by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
 * [FEATURE]: add possibility to configure metrics path and listen address and port by using exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/33
+
+* [FIX]: bump to golang 1.20 because of goreleaser problems ins pipeline https://github.com/bt909/imap-mailstat-exporter/pull/42
+
 * [CHORE]: update module github.com/prometheus/common to from v0.44.0 to v0.45.0 https://github.com/bt909/imap-mailstat-exporter/pull/34
 * [CHORE]: bump to golang 1.21 and rename some internal things https://github.com/bt909/imap-mailstat-exporter/pull/31
 * [CHORE]: update module github.com/prometheus/client_golang from v0.16.0 to v1.17.0 https://github.com/bt909/imap-mailstat-exporter/pull/30
