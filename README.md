@@ -10,7 +10,7 @@ Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 > [!NOTE]
 > This exporter is in early development and at the moment highly adjusted for my personal usecase. As it not reached 1.0.0 yet, there may are breaking changes at any time. Keep an eye on the [CHANGELOG](https://github.com/bt909/imap-mailstat-exporter/blob/main/CHANGELOG.md) for information.
 
-As this exporter is using [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) since 0.1.0 (not yet released), you can also configure basic auth, or TLS secured connection to the exporter using http/2, for more information visit the [configuration page of exporter-toolkit](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
+As this exporter is using [exporter-toolkit](https://github.com/prometheus/exporter-toolkit) since 0.1.0, you can also configure basic auth, or TLS secured connection to the exporter using http/2, for more information visit the [configuration page of exporter-toolkit](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
 
 The exporter provides 14 metrics, three main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature`, eigth metrics are quota related and only provided if the server supports imap quota and two informatial metrics.
 
@@ -36,9 +36,9 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 > [!IMPORTANT]
-> In version 0.1.0 (not yet released) the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable is deprecated and the old metrics will be removed in version 0.2.0.
+> In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable is deprecated and the old metrics will be removed in version 0.2.0.
 
-The exposed metrics since 0.1.0 (not yet released) are the following:
+The exposed metrics since 0.1.0 are the following:
 
 metric | type | description | remarks
 -------|------|-------------|---------
@@ -121,7 +121,7 @@ Metrics are available via http (or https if configured) on port 8081/tcp on path
 
 ## Commandline Options
 
-### version 0.1.0 (not yet released, about to come)
+### version 0.1.0
 
 You have several commandline options. Three of them can also be set via environment variables, if you like.  
 
@@ -167,7 +167,7 @@ Usage of imap-mailstat-exporter:
 ## Configuration
 
 You can configure your accounts in a configfile in [toml](https://toml.io) format. You can find the example file in the folder `examples`. You can use
-commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0, not yet released) to specify where your configfile is located.
+commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0) to specify where your configfile is located.
 
 > [!IMPORTANT]
 > If you are using the container image, the default configfile used where you need to mount your config is `/home/nonroot/config/config.toml`.
@@ -204,7 +204,7 @@ additionalfolders = ["Trash", "Spam"]
 ## Loglevel
 
 At the moment INFO (default), WARN and ERROR are used. DEBUG is available, but I don't output anything on this level yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
-If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0, not yet released).
+If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0).
 
 ## OCI Container Image
 
