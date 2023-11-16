@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/alecthomas/kingpin/v2 v2.3.2
+	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/go-kit/log v0.2.1
