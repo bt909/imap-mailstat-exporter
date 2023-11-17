@@ -216,6 +216,11 @@ docker pull ghcr.io/bt909/imap-mailstat-exporter:*.*.*
 
 The tag `latest` is following main branch and not related to the releases. This behavior will stay until release 1.0.0.
 
+## Dashboard
+
+In folder examples you can find a example Grafana dashboard, which I use together with the also available example scrape config. I scrape my exporter every 10 minutes, but as Prometheus only hold metrics for 5 minutes, the dashboard is build for scraping with this interval and looks for the last values in the last 10 minutes.  
+If you use another scrape interval you may need to adjust the queries in the dashboard, if you want to use it.
+
 ## License
 
 This project is licensed using MIT license, see [LICENSE](https://github.com/bt909/imap-mailstat-exporter/blob/main/LICENSE)
