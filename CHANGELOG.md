@@ -1,3 +1,13 @@
+# Unreleased
+
+As warnings, log entries and the readme indicated to old metrics and the related migration mode will removed in the next release 0.2.0.
+
+* [BREAKING CHANGE]: remove old metrics and migration mode https://github.com/bt909/imap-mailstat-exporter/pull/44
+
+* [DOCS]: add some word to the example dashboard https://github.com/bt909/imap-mailstat-exporter/pull/44
+
+* [CHORE] update github.com/alecthomas/kingpin/v2 from v2.3.2 to v2.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/43
+
 # 0.1.0 / 2023-11-07
 
 This version has some heavy changes, but these were things a thought about for a while now and think this shouldn't be deferred for a long time. So now we have a big bang but the next ideas I have in mind are not that destructive.
