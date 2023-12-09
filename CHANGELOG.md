@@ -6,7 +6,12 @@ As warnings, log entries and the readme indicated to old metrics and the related
 
 * [DOCS]: add some word to the example dashboard https://github.com/bt909/imap-mailstat-exporter/pull/44
 
-* [CHORE] update github.com/alecthomas/kingpin/v2 from v2.3.2 to v2.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/43
+* [CHORE] update module github.com/alecthomas/kingpin/v2 from v2.3.2 to v2.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/43
+* [CHORE] update module github.com/prometheus/exporter-toolkit to v0.11.0 https://github.com/bt909/imap-mailstat-exporter/pull/47
+* [CHORE] cleanup go mods and adjust changelog https://github.com/bt909/imap-mailstat-exporter/pull/49
+
+* [CI] update actions/setup-go action to v5 https://github.com/bt909/imap-mailstat-exporter/pull/46
+* [CI] adjust setup go to use latest stable go https://github.com/bt909/imap-mailstat-exporter/pull/48
 
 # 0.1.0 / 2023-11-07
 
