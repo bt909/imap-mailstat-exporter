@@ -42,12 +42,13 @@ func GetConfig(configfile string) MyConfig {
 }
 
 // the function for unmarshaling the configfile
-func readConfig(file io.Reader) (configFile MyConfig, err error) {
-	var config MyConfig
+func readConfig(file io.Reader) (config MyConfig, err error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(file)
 	err = toml.Unmarshal(buf.Bytes(), &config)
-	checkError(err)
+	if err != nil {
+		return config, err
+	}
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
 	wg.Add(sliceLength)
@@ -59,5 +60,6 @@ func readConfig(file io.Reader) (configFile MyConfig, err error) {
 			}
 		}(account)
 	}
-	return config, nil
+	wg.Wait()
+	return config, err
 }
