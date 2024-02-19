@@ -14,12 +14,13 @@ import (
 	"github.com/prometheus/exporter-toolkit/web"
 	"github.com/prometheus/exporter-toolkit/web/kingpinflag"
 
+	"github.com/bt909/imap-mailstat-exporter/internal/configread"
 	"github.com/bt909/imap-mailstat-exporter/internal/valuecollect"
 )
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.2.0-alpha"
+	Version             = "0.2.0-beta"
 	configfile          *string
 	oldestunseenfeature *bool
 	logger              = promlog.New(&promlog.Config{})
@@ -46,7 +47,13 @@ func main() {
 
 	level.Info(logger).Log("msg", "Starting imap-mailstat-exporter", "Version", Version)
 	reg := prometheus.NewRegistry()
-	d := valuecollect.NewImapStatsCollector(*configfile, logger, *oldestunseenfeature, Version)
+	level.Info(logger).Log("msg", "Reading config file", "File", *configfile)
+	config, err := configread.GetConfig(*configfile)
+	if err != nil {
+		level.Error(logger).Log("msg", "Error in reading config", "Error", err)
+		os.Exit(1)
+	}
+	d := valuecollect.NewImapStatsCollector(config, logger, *oldestunseenfeature, Version)
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()

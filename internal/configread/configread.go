@@ -2,6 +2,8 @@
 package configread
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"sync"
 
@@ -30,17 +32,25 @@ type MyConfig struct {
 	Accounts []*AccountConfig
 }
 
-// the main function for reading and unmarshaling the configfile
-func GetConfig(configfile string) MyConfig {
-	file, err := os.ReadFile(configfile)
+// the main function for reading
+func GetConfig(configfile string) (MyConfig, error) {
+	file, err := os.Open(configfile)
 	checkError(err)
-	var config MyConfig
-	err = toml.Unmarshal(file, &config)
+	config, err := readConfig(file)
+	return config, err
+}
 
+// the function for unmarshaling the configfile
+func readConfig(file io.Reader) (config MyConfig, err error) {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(file)
+	err = toml.Unmarshal(buf.Bytes(), &config)
+	if err != nil {
+		return config, err
+	}
 	sliceLength := len(config.Accounts)
 	var wg sync.WaitGroup
 	wg.Add(sliceLength)
-
 	for account := range config.Accounts {
 		go func(account int) {
 			defer wg.Done()
@@ -49,5 +59,6 @@ func GetConfig(configfile string) MyConfig {
 			}
 		}(account)
 	}
-	return config
+	wg.Wait()
+	return config, err
 }
