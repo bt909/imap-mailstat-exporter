@@ -14,6 +14,7 @@ As warnings, log entries and the readme indicated the old metrics and the relate
 * [CHORE] update module github.com/prometheus/client_golang from v1.17.0 to v.1.18.0 https://github.com/bt909/imap-mailstat-exporter/pull/50
 * [CHORE] update module github.com/prometheus/common from v.0.45.0 to v.0.46.0 https://github.com/bt909/imap-mailstat-exporter/pull/51
 * [CHORE] update build container version from golang:1.21 to golang:1.22 https://github.com/bt909/imap-mailstat-exporter/pull/53
+* [CHORE] update module github.com/prometheus/common from v.0.46.0 to v.0.47.0 https://github.com/bt909/imap-mailstat-exporter/pull/54
 
 * [CI] update actions/setup-go action to v5 https://github.com/bt909/imap-mailstat-exporter/pull/46
 * [CI] adjust setup go to use latest stable go https://github.com/bt909/imap-mailstat-exporter/pull/48
