@@ -33,12 +33,11 @@ type MyConfig struct {
 }
 
 // the main function for reading
-func GetConfig(configfile string) MyConfig {
+func GetConfig(configfile string) (MyConfig, error) {
 	file, err := os.Open(configfile)
 	checkError(err)
 	config, err := readConfig(file)
-	checkError(err)
-	return config
+	return config, err
 }
 
 // the function for unmarshaling the configfile
