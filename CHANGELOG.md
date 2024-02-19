@@ -1,8 +1,10 @@
 # Unreleased
 
-As warnings, log entries and the readme indicated to old metrics and the related migration mode will removed in the next release 0.2.0.
+As warnings, log entries and the readme indicated the old metrics and the related migration mode will removed in the next release 0.2.0.
 
 * [BREAKING CHANGE]: remove old metrics and migration mode https://github.com/bt909/imap-mailstat-exporter/pull/44
+
+* [FIX]: refactored configfile handling and fixed a bug regarding setting configured empty username to mailaddress https://github.com/bt909/imap-mailstat-exporter/pull/52
 
 * [DOCS]: add some word to the example dashboard https://github.com/bt909/imap-mailstat-exporter/pull/44
 
