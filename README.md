@@ -36,9 +36,9 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 > [!IMPORTANT]
-> In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag/variable is deprecated and the old metrics will be removed in version 0.2.0.
+> In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration in version 0.1.0 to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag, the environment variable and the old metrics are removed in version 0.2.0.
 
-The exposed metrics since 0.1.0 are the following:
+The exposed metrics since version 0.1.0 are the following:
 
 metric | type | description | remarks
 -------|------|-------------|---------
@@ -119,9 +119,9 @@ mailstat_up 1
 
 Metrics are available via http (or https if configured) on port 8081/tcp on path `/metrics` as default, but you can configure this of you want to change.
 
-## Commandline Options
+## Commandline options
 
-### version 0.1.0
+### Since version 0.1.0
 
 You have several commandline options. Three of them can also be set via environment variables, if you like.  
 
@@ -167,7 +167,7 @@ Usage of imap-mailstat-exporter:
 ## Configuration
 
 You can configure your accounts in a configfile in [toml](https://toml.io) format. You can find the example file in the folder `examples`. You can use
-commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0) to specify where your configfile is located.
+commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0 and newer) to specify where your configfile is located.
 
 > [!IMPORTANT]
 > If you are using the container image, the default configfile used where you need to mount your config is `/home/nonroot/config/config.toml`.
@@ -204,17 +204,17 @@ additionalfolders = ["Trash", "Spam"]
 ## Loglevel
 
 At the moment INFO (default), WARN and ERROR are used. DEBUG is available, but I don't output anything on this level yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
-If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0).
+If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0 and newer).
 
 ## OCI Container Image
 
-Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. Images are build for linux/amd64 and linux/arm64 for every release. Release versions are v*.*.* and the Container Images are without the `v` in front of the version, so use:
+Image is available on: `ghcr.io/bt909/imap-mailstat-exporter`. Images are build for linux/amd64 and linux/arm64 for every release as [Docker multi-platform image](https://docs.docker.com/build/building/multi-platform/). Release versions are v*.*.* and the Container Images are without the `v` in front of the version, so use:
 
 ```shell
 docker pull ghcr.io/bt909/imap-mailstat-exporter:*.*.*
 ```
 
-The tag `latest` is following main branch and not related to the releases. This behavior will stay until release 1.0.0.
+The tag `latest` is following main branch, is only build for linux/amd64 platform and not related to the releases.
 
 ## Dashboard
 
