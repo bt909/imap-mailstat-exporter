@@ -1,6 +1,6 @@
 # 0.2.0 / 2024-02-22
 
-As warnings, log entries and the readme indicated the old metrics and the related migration mode will removed in the this release!
+As warnings, log entries and the readme indicated the old metrics and the related migration mode is removed in this release!
 
 * [BREAKING CHANGE]: remove old metrics and migration mode https://github.com/bt909/imap-mailstat-exporter/pull/44
 
