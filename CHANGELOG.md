@@ -1,12 +1,14 @@
-# Unreleased
+# 0.2.0 / 2024-02-22
 
-As warnings, log entries and the readme indicated the old metrics and the related migration mode will removed in the next release 0.2.0.
+As warnings, log entries and the readme indicated the old metrics and the related migration mode is removed in this release!
 
 * [BREAKING CHANGE]: remove old metrics and migration mode https://github.com/bt909/imap-mailstat-exporter/pull/44
 
 * [FIX]: refactored configfile handling and fixed a bug regarding setting configured empty username to mailaddress https://github.com/bt909/imap-mailstat-exporter/pull/52
 
 * [DOCS]: add some word to the example dashboard https://github.com/bt909/imap-mailstat-exporter/pull/44
+* [DOCS]: clarify that only release images are build as Docker multi-platform images https://github.com/bt909/imap-mailstat-exporter/pull/55
+* [DOCS]: added some info for 0.2.0 release https://github.com/bt909/imap-mailstat-exporter/pull/55
 
 * [CHORE] update module github.com/alecthomas/kingpin/v2 from v2.3.2 to v2.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/43
 * [CHORE] update module github.com/prometheus/exporter-toolkit to v0.11.0 https://github.com/bt909/imap-mailstat-exporter/pull/47
@@ -18,6 +20,7 @@ As warnings, log entries and the readme indicated the old metrics and the relate
 
 * [CI] update actions/setup-go action to v5 https://github.com/bt909/imap-mailstat-exporter/pull/46
 * [CI] adjust setup go to use latest stable go https://github.com/bt909/imap-mailstat-exporter/pull/48
+* [CI] disable docker build provenance (fix unknown/unknown arch) https://github.com/bt909/imap-mailstat-exporter/pull/55
 
 # 0.1.0 / 2023-11-07
 
