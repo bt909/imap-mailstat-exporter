@@ -20,7 +20,7 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.3.0-version"
+	Version             = "0.3.0-alpha"
 	configfile          *string
 	oldestunseenfeature *bool
 	logger              = promlog.New(&promlog.Config{})
