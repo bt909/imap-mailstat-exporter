@@ -46,7 +46,7 @@ metric | type | description | remarks
 `mailstat_up` | gauge | Was talking to all accounts imap successfully | if value is 0: any account has a problem, check logs
 `mailstat_fetch_duration_seconds` | gauge | Duration for fetching the metrics for the given account |
 `mailstat_mails_all` | gauge | The total number of mails in folder |
-`mailstat_mails_unseen` | gauge | The total number of unseen mails in folder |
+`mailstat_mails_unseen` | gauge | The total number of [unseen mails](https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.2) in folder |
 `mailstat_level_quota_avail` | gauge | How many levels are available according your quota | only imap with quota support
 `mailstat_level_quota_used` | gauge | How many levels are used | only imap with quota support
 `mailstat_mailbox_quota_avail` | gauge | How many mailboxes are available according your quota | only imap with quota support
@@ -55,7 +55,7 @@ metric | type | description | remarks
 `mailstat_message_quota_used` | gauge | How many messages are used | only imap with quota support
 `mailstat_storage_quota_avail_bytes` | gauge | How many storage is available according your quota | only imap with quota support
 `mailstat_storage_quota_used_bytes` | gauge | How many storage is used | only imap with quota support
-`mailstat_mails_oldest_unseen_timestamp` | gauge | Timestamp in unix format of oldest unseen mail | only with enabled feature flag `--oldestunseen.feature`  
+`mailstat_mails_oldest_unseen_timestamp` | gauge | Timestamp in unix format of oldest [unseen mail](https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.2) | only with enabled feature flag `--oldestunseen.feature`  
 
 Example output:
 
