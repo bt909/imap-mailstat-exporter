@@ -1,5 +1,11 @@
 # Unreleased
 
+* [DOCS] clarify the naming 'unseen' by setting link to IMAP flags description in RFC (thanks to [kekscode](https://github.com/kekscode)) https://github.com/bt909/imap-mailstat-exporter/pull/57
+
+* [CHORE] update module github.com/prometheus/common from v.0.47.0 to v.0.48.0 https://github.com/bt909/imap-mailstat-exporter/pull/56
+
+Thank you for contribution [kekscode](https://github.com/kekscode).
+
 # 0.2.0 / 2024-02-22
 
 As warnings, log entries and the readme indicated the old metrics and the related migration mode is removed in this release!
