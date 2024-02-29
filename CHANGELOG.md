@@ -4,6 +4,7 @@
 
 * [CHORE] update module github.com/prometheus/common from v0.47.0 to v0.48.0 https://github.com/bt909/imap-mailstat-exporter/pull/56
 * [CHORE] update module github.com/prometheus/client_golang from v1.18.0 to v1.19.0 https://github.com/bt909/imap-mailstat-exporter/pull/60
+* [CHORE] update module github.com/prometheus/common from v0.48.0 to v0.49.0 https://github.com/bt909/imap-mailstat-exporter/pull/61
 
 Thank you for contribution [kekscode](https://github.com/kekscode).
 
