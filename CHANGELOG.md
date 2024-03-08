@@ -7,7 +7,7 @@
 * [CHORE] update module github.com/prometheus/common from v0.48.0 to v0.49.0 https://github.com/bt909/imap-mailstat-exporter/pull/61
 * [CHORE] for module update of github.com/prometheus/common to v0.49.0 a switch from golang 1.20 to 1.21 was performed https://github.com/bt909/imap-mailstat-exporter/pull/61
 * [CHORE] update module github.com/prometheus/common from v0.49.0 to v0.50.0 https://github.com/bt909/imap-mailstat-exporter/pull/62
-* [CHORE] update devcontainer mcr.microsoft.com/devcontainers/go from 1-1.21-bullseye to 1-1.21-bullseye https://github.com/bt909/imap-mailstat-exporter/pull/63
+* [CHORE] update devcontainer mcr.microsoft.com/devcontainers/go from 1-1.21-bullseye to 1-1.22-bullseye https://github.com/bt909/imap-mailstat-exporter/pull/63
 
 Thank you for contribution [kekscode](https://github.com/kekscode).
 
