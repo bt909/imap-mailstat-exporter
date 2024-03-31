@@ -20,9 +20,10 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.3.0-alpha"
+	Version             = "0.3.0-beta"
 	configfile          *string
 	oldestunseenfeature *bool
+	mailboxpassword     *string
 	logger              = promlog.New(&promlog.Config{})
 )
 
@@ -32,6 +33,7 @@ func main() {
 	var app = kingpin.New(name, "a prometheus-exporter to expose metrics about your mailboxes")
 	configfile = app.Flag("config.file", "Provide the configfile").Envar("MAILSTAT_EXPORTER_CONFIGFILE").Default("./config/config.toml").Short('c').String()
 	oldestunseenfeature = app.Flag("oldestunseen.feature", "Enable metric with timestamp of oldest unseen mail, default false").Envar("MAILSTAT_EXPORTER_OLDESTUNSEEN").Default("false").Bool()
+	mailboxpassword = app.Flag("mailboxpassword", "Password for mailbox, available if only one mailbox is configured").Envar("MAILSTAT_EXPORTER_MAILBOX_PASSWORD").Default("\000").Short('p').String()
 	toolkitFlags := kingpinflag.AddFlags(app, ":8081")
 	metricsPath := app.Flag("web.telemetry-path", "Path under which to expose the IMAP mailstat Prometheus metrics").Envar("MAILSTAT_EXPORTER_WEB_TELEMETRY_PATH").Default("/metrics").String()
 	app.Version(Version)
@@ -52,6 +54,11 @@ func main() {
 	if err != nil {
 		level.Error(logger).Log("msg", "Error in reading config", "Error", err)
 		os.Exit(1)
+	}
+	if len(config.Accounts) > 1 && *mailboxpassword != "\000" {
+		level.Error(logger).Log("msg", "Configfile has set more than one mailbox and password via commandline or environment variable set, but ignored!")
+	} else {
+		config.Accounts[0].Password = *mailboxpassword
 	}
 	d := valuecollect.NewImapStatsCollector(config, logger, *oldestunseenfeature, Version)
 	reg.MustRegister(d)
@@ -82,6 +89,6 @@ func main() {
 
 	server := &http.Server{Handler: mux}
 	if err := web.ListenAndServe(server, toolkitFlags, logger); err != nil {
-		level.Error(logger).Log("msg", "Cannot start exporter")
+		level.Error(logger).Log("msg", "Cannot start exporter", "Error", err)
 	}
 }
