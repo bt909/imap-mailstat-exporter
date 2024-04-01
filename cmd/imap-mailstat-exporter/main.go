@@ -33,7 +33,7 @@ func main() {
 	var app = kingpin.New(name, "a prometheus-exporter to expose metrics about your mailboxes")
 	configfile = app.Flag("config.file", "Provide the configfile").Envar("MAILSTAT_EXPORTER_CONFIGFILE").Default("./config/config.toml").Short('c').String()
 	oldestunseenfeature = app.Flag("oldestunseen.feature", "Enable metric with timestamp of oldest unseen mail, default false").Envar("MAILSTAT_EXPORTER_OLDESTUNSEEN").Default("false").Bool()
-	mailboxpassword = app.Flag("mailboxpassword", "Password for mailbox, available if only one mailbox is configured").Envar("MAILSTAT_EXPORTER_MAILBOX_PASSWORD").Default("\000").Short('p').String()
+	mailboxpassword = app.Flag("mailboxpassword", "Password for mailbox, available if only one mailbox is configured").Envar("MAILSTAT_EXPORTER_MAILBOX_PASSWORD").Default("\x00").Short('p').String()
 	toolkitFlags := kingpinflag.AddFlags(app, ":8081")
 	metricsPath := app.Flag("web.telemetry-path", "Path under which to expose the IMAP mailstat Prometheus metrics").Envar("MAILSTAT_EXPORTER_WEB_TELEMETRY_PATH").Default("/metrics").String()
 	app.Version(Version)
@@ -56,11 +56,11 @@ func main() {
 		os.Exit(1)
 	}
 	switch {
-	case len(config.Accounts) == 1 && *mailboxpassword != "\000":
+	case len(config.Accounts) == 1 && *mailboxpassword != "\x00":
 		config.Accounts[0].Password = *mailboxpassword
-	case len(config.Accounts) > 1 && *mailboxpassword != "\000":
+	case len(config.Accounts) > 1 && *mailboxpassword != "\x00":
 		level.Error(logger).Log("msg", "Configfile has set more than one mailbox and password via is set commandline or environment variable, but will be ignored!")
-	case len(config.Accounts) == 1 && *mailboxpassword == "\000" && config.Accounts[0].Password == "":
+	case len(config.Accounts) == 1 && *mailboxpassword == "\x00" && config.Accounts[0].Password == "":
 		level.Warn(logger).Log("msg", "Configfile has empty password and you don't have set a password via commandline or environment variable")
 	}
 	d := valuecollect.NewImapStatsCollector(config, logger, *oldestunseenfeature, Version)
