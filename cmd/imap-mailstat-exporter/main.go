@@ -55,10 +55,13 @@ func main() {
 		level.Error(logger).Log("msg", "Error in reading config", "Error", err)
 		os.Exit(1)
 	}
-	if len(config.Accounts) > 1 && *mailboxpassword != "\000" {
-		level.Error(logger).Log("msg", "Configfile has set more than one mailbox and password via commandline or environment variable set, but ignored!")
-	} else {
+	switch {
+	case len(config.Accounts) == 1 && *mailboxpassword != "\000":
 		config.Accounts[0].Password = *mailboxpassword
+	case len(config.Accounts) > 1 && *mailboxpassword != "\000":
+		level.Error(logger).Log("msg", "Configfile has set more than one mailbox and password via is set commandline or environment variable, but will be ignored!")
+	case len(config.Accounts) == 1 && *mailboxpassword == "\000" && config.Accounts[0].Password == "":
+		level.Warn(logger).Log("msg", "Configfile has empty password and you don't have set a password via commandline or environment variable")
 	}
 	d := valuecollect.NewImapStatsCollector(config, logger, *oldestunseenfeature, Version)
 	reg.MustRegister(d)
