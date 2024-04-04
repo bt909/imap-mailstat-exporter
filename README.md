@@ -3,7 +3,7 @@
 [![publish](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish_latest_oci_image.yaml/badge.svg)](https://github.com/bt909/imap-mailstat-exporter/actions/workflows/publish_latest_oci_image.yaml)
  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-This is a prometheus exporter which gives you metrics for how many emails you have in your INBOX and in additional configured folders.  
+This is a prometheus exporter which gives you metrics for how many e-mails you have in your INBOX and in additional configured folders.  
 
 Connections to IMAP are only TLS enrypted supported, either via TLS or STARTTLS.
 
@@ -21,7 +21,7 @@ ts=2023-10-30T22:12:27.376Z caller=valuecollector.go:266 level=info msg="Fetchin
 
 ```
 
-The exposed metrics were the following in version 0.0.1 and can be enabled by using commandline flag `--migration.mode`:
+The exposed metrics were the following in version 0.0.1 and can be enabled by using command line flag `--migration.mode`:
 
 `imap_mailstat_mails_all_quantity`  
 `imap_mailstat_mails_unseen_quantity`  
@@ -36,7 +36,7 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 `imap_mailstat_mails_oldestunseen_timestamp` (only with enabled feature flag `--oldestunseen.feature`)
 
 > [!IMPORTANT]
-> In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration in version 0.1.0 to get the old metrics as well using commandline flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag, the environment variable and the old metrics are removed in version 0.2.0.
+> In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration in version 0.1.0 to get the old metrics as well using command line flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag, the environment variable and the old metrics are removed in version 0.2.0.
 
 The exposed metrics since version 0.1.0 are the following:
 
@@ -119,11 +119,40 @@ mailstat_up 1
 
 Metrics are available via http (or https if configured) on port 8081/tcp on path `/metrics` as default, but you can configure this of you want to change.
 
-## Commandline options
+## Command line options
+
+### Since version 0.3.0
+
+You have several command line options. Four of them can also be set via environment variables, if you like.  
+Change to version 0.1.0 is the new option for providing a password for the mailbox (only used with one account configuration, see configuration section).
+
+```shell
+usage: imap-mailstat-exporter [<flags>]
+
+a prometheus-exporter to expose metrics about your mailboxes
+
+
+Flags:
+  -h, --[no-]help                Show context-sensitive help (also try --help-long and --help-man).
+  -c, --config.file="./config/config.toml"  
+                                 Provide the configfile ($MAILSTAT_EXPORTER_CONFIGFILE)
+      --[no-]oldestunseen.feature  
+                                 Enable metric with timestamp of oldest unseen mail, default false ($MAILSTAT_EXPORTER_OLDESTUNSEEN)
+  -p, --mailboxpassword="\x00"   Password for mailbox, available if only one mailbox is configured ($MAILSTAT_EXPORTER_MAILBOX_PASSWORD)
+      --[no-]web.systemd-socket  Use systemd socket activation listeners instead of port listeners (Linux only).
+      --web.listen-address=:8081 ...  
+                                 Addresses on which to expose metrics and web interface. Repeatable for multiple addresses.
+      --web.config.file=""       Path to configuration file that can enable TLS or authentication. See: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+      --web.telemetry-path="/metrics"  
+                                 Path under which to expose the IMAP mailstat Prometheus metrics ($MAILSTAT_EXPORTER_WEB_TELEMETRY_PATH)
+  -v, --[no-]version             Show application version.
+      --log.level=info           Only log messages with the given severity or above. One of: [debug, info, warn, error]
+      --log.format=logfmt        Output format of log messages. One of: [logfmt, json]
+```
 
 ### Since version 0.1.0
 
-You have several commandline options. Three of them can also be set via environment variables, if you like.  
+You have several command line options. Three of them can also be set via environment variables, if you like.  
 
 ```shell
 usage: imap-mailstat-exporter [<flags>]
@@ -152,7 +181,7 @@ Flags:
 
 ### Version 0.0.1
 
-You have three available commandline options.
+You have three available command line options.
 
 ```shell
 Usage of imap-mailstat-exporter:
@@ -167,10 +196,13 @@ Usage of imap-mailstat-exporter:
 ## Configuration
 
 You can configure your accounts in a configfile in [toml](https://toml.io) format. You can find the example file in the folder `examples`. You can use
-commandline flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0 and newer) to specify where your configfile is located.
+command line flag `-config=<path/configfile>` (version 0.0.1) or `--config.file="<path/configfile>"` (version 0.1.0 and newer) to specify where your configfile is located.
 
 > [!IMPORTANT]
-> If you are using the container image, the default configfile used where you need to mount your config is `/home/nonroot/config/config.toml`.
+> If you are using the container image, the default configfile in the container is expected on `/home/nonroot/config/config.toml`. You need to set your mount accordingly.
+
+Since version 0.3.0 there is an additional possibility to provide the password for the mailbox, but this is only available using just one configured account.
+If you use only one account you can configure your password via environment variable ($MAILSTAT_EXPORTER_MAILBOX_PASSWORD) or command line parameter (-p). This is only used when you have one account configured. If you use the environment variable or command line parameter with more than one configured account, the password outside the configuration file is ignored and you will receive an error message in the logs.
 
 Example configuration, for one account, use only one account definition.
 
@@ -178,11 +210,11 @@ Example configuration, for one account, use only one account definition.
 # This is a example configfile.  
 # You need only one account configured, but all keys need to be defined except username which can be empty and mailaddress is used as username value instead.
 # place this file named as config.toml in a folder named config along your imap-mailstat-exporter binary or mount this file as config.toml in folder /config/ in the container.
-# If you put you config elsewhere you can use the commandline flag --config.file="<path/configfile>" to specify where your config is.
+# If you put you config elsewhere you can use the command line flag --config.file="<path/configfile>" to specify where your config is.
 
 [[Accounts]]
 name = "Jane Mailbox" # mailbox, you can set as you like, will be used as metric label (whitespace are replaced by underscore)
-mailaddress = "jane@example.com" # your email address (at the moment used as login name)
+mailaddress = "jane@example.com" # your e-mail address (at the moment used as login name)
 username = "your_user_name" # if empty string mailaddress value is used
 password = "your_password" # beware of escaping characters like \ or "
 serveraddress = "mail.example.com" # mailserver name or address
@@ -204,7 +236,7 @@ additionalfolders = ["Trash", "Spam"]
 ## Loglevel
 
 At the moment INFO (default), WARN and ERROR are used. DEBUG is available, but I don't output anything on this level yet. INFO tells you when metrics are fetched and give you additional information how long the connection setup, the login process and the whole metric fetch takes.
-If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. commandline flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0 and newer).
+If INFO is too noisy you can switch to WARN or ERROR level and only get information about warnings or errors by using e.g. command line flag `-loglevel WARN` (version 0.0.1), or `--log.level="WARN"` (version 0.1.0 and newer).
 
 ## OCI Container Image
 
