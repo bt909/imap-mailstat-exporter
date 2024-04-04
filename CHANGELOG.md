@@ -12,6 +12,7 @@
 * [CHORE] update devcontainer mcr.microsoft.com/devcontainers/go from 1-1.21-bullseye to 1-1.22-bullseye https://github.com/bt909/imap-mailstat-exporter/pull/63
 * [CHORE] update module github.com/prometheus/common from v0.50.0 to v0.51.0 https://github.com/bt909/imap-mailstat-exporter/pull/65
 * [CHORE] update module github.com/prometheus/common from v0.51.0 to v0.51.1 https://github.com/bt909/imap-mailstat-exporter/pull/66
+* [CHORE] update module github.com/prometheus/common from v0.51.1 to v0.52.2 https://github.com/bt909/imap-mailstat-exporter/pull/68
 
 Thank you for contribution [kekscode](https://github.com/kekscode).
 
