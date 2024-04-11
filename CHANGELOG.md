@@ -1,3 +1,7 @@
+# Unreleased / xxxx-xx-xx
+
+* [CHORE] update module github.com/prometheus/common from v0.52.2 to v0.52.3 https://github.com/bt909/imap-mailstat-exporter/pull/70 
+
 # 0.3.0 / 2024-04-04
 
 * [DOCS] clarify the naming 'unseen' by setting link to IMAP flags description in RFC (thanks to [kekscode](https://github.com/kekscode)) https://github.com/bt909/imap-mailstat-exporter/pull/57

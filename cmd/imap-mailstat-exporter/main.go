@@ -20,7 +20,7 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.3.0"
+	Version             = "0.4.0-alpha"
 	configfile          *string
 	oldestunseenfeature *bool
 	mailboxpassword     *string
