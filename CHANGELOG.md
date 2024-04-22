@@ -1,7 +1,8 @@
 # Unreleased / xxxx-xx-xx
 
-* [CHORE] update golang toolchain from 1.22.0 to 1.22.2 https://github.com/bt909/imap-mailstat-exporter/pull/72
 * [CHORE] update module github.com/prometheus/common from v0.52.2 to v0.52.3 https://github.com/bt909/imap-mailstat-exporter/pull/70 
+* [CHORE] update module github.com/prometheus/common from v0.52.3 to v0.53.0 https://github.com/bt909/imap-mailstat-exporter/pull/71
+* [CHORE] update golang toolchain from 1.22.0 to 1.22.2 https://github.com/bt909/imap-mailstat-exporter/pull/72
 
 # 0.3.0 / 2024-04-04
 
