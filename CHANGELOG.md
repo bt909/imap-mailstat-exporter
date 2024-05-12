@@ -1,10 +1,12 @@
-# Unreleased / xxxx-xx-xx
+# 0.3.1 / 2024-05-12
 
 * [CHORE] update module github.com/prometheus/common from v0.52.2 to v0.52.3 https://github.com/bt909/imap-mailstat-exporter/pull/70 
 * [CHORE] update module github.com/prometheus/common from v0.52.3 to v0.53.0 https://github.com/bt909/imap-mailstat-exporter/pull/71
 * [CHORE] update golang toolchain from 1.22.0 to 1.22.2 https://github.com/bt909/imap-mailstat-exporter/pull/72
 * [CHORE] update golang toolchain from 1.22.2 to 1.22.3 https://github.com/bt909/imap-mailstat-exporter/pull/73
 * [CHORE] update module github.com/prometheus/client_golang from v1.19.0 to v1.19.1 https://github.com/bt909/imap-mailstat-exporter/pull/74
+* [CHORE] update several transitive dependencies https://github.com/bt909/imap-mailstat-exporter/pull/75
+* [FIX] fix CVE-2023-45288 by updating golang.org/x/net from 0.22 to 0.25 https://github.com/bt909/imap-mailstat-exporter/pull/75
 
 # 0.3.0 / 2024-04-04
 
