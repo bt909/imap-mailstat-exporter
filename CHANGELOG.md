@@ -5,6 +5,7 @@
 * [CHORE] update golang toolchain from 1.22.0 to 1.22.2 https://github.com/bt909/imap-mailstat-exporter/pull/72
 * [CHORE] update golang toolchain from 1.22.2 to 1.22.3 https://github.com/bt909/imap-mailstat-exporter/pull/73
 * [CHORE] update module github.com/prometheus/client_golang from v1.19.0 to v1.19.1 https://github.com/bt909/imap-mailstat-exporter/pull/74
+* [CHORE] update several transitive dependencies https://github.com/bt909/imap-mailstat-exporter/pull/75
 
 # 0.3.0 / 2024-04-04
 
