@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.22.3
 
 require (
-	github.com/BurntSushi/toml v1.3.2
+	github.com/BurntSushi/toml v1.4.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
