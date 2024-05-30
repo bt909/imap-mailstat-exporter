@@ -1,3 +1,7 @@
+# Unreleased
+
+* [CHORE] update module github.com/burntsushi/toml from v1.3.2 to v1.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/76
+
 # 0.3.1 / 2024-05-12
 
 * [CHORE] update module github.com/prometheus/common from v0.52.2 to v0.52.3 https://github.com/bt909/imap-mailstat-exporter/pull/70 
