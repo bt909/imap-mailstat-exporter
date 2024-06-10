@@ -1,9 +1,13 @@
 # Unreleased
 
+* [FEATURE] allow web.telemetry-path to be set to / https://github.com/bt909/imap-mailstat-exporter/pull/82
+
 * [CHORE] update module github.com/burntsushi/toml from v1.3.2 to v1.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/76
 * [CHORE] update module github.com/prometheus/common from v0.53.0 to v0.54.0 https://github.com/bt909/imap-mailstat-exporter/pull/78
-* [CHORE] update golang toolchain from 1.22.2 to 1.22.3 https://github.com/bt909/imap-mailstat-exporter/pull/79
-* [CHORE] update goreleaser/goreleaser-action action from v5 to v6 https://github.com/bt909/imap-mailstat-exporter/pull/80
+* [CHORE] update golang toolchain from 1.22.3 to 1.22.4 https://github.com/bt909/imap-mailstat-exporter/pull/79
+* [CHORE] update golang from 1.21 to 1.22 https://github.com/bt909/imap-mailstat-exporter/pull/82
+
+* [CI] update goreleaser/goreleaser-action action from v5 to v6 https://github.com/bt909/imap-mailstat-exporter/pull/80
 
 # 0.3.1 / 2024-05-12
 

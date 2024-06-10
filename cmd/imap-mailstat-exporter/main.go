@@ -20,7 +20,7 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.4.0-alpha"
+	Version             = "0.4.0-beta"
 	configfile          *string
 	oldestunseenfeature *bool
 	mailboxpassword     *string
@@ -69,18 +69,34 @@ func main() {
 	mux := http.NewServeMux()
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 	mux.Handle(*metricsPath, promHandler)
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(` <!DOCTYPE html>
-		<html>
-		<head><title>imap-mailstat-exporter</title></head>
-		<body>
-		<h1>imap-mailstat-exporter</h1>
-		<p><a href='` + *metricsPath + `'>Metrics</a></p>
-		<p><a href="/healthz">Health</a></p>
-		<p><a href="https://github.com/bt909/imap-mailstat-exporter" target="_blank">Code</a></p>
-		</body>
-		</html>`))
-	})
+	if *metricsPath != "/" {
+		landingConfig := web.LandingConfig{
+			Name:        "IMAP Mailstat Exporter",
+			HeaderColor: "purple",
+			Description: "Prometheus Exporter for IMAP Mailboxes",
+			Version:     Version,
+			Links: []web.LandingLinks{
+				{
+					Address: *metricsPath,
+					Text:    "Metrics",
+				},
+				{
+					Address: "/healthz",
+					Text:    "Health Endpoint",
+				},
+				{
+					Address: "https://github.com/bt909/imap-mailstat-exporter",
+					Text:    "Code",
+				},
+			},
+		}
+		landingPage, err := web.NewLandingPage(landingConfig)
+		if err != nil {
+			level.Error(logger).Log("err", err)
+			os.Exit(1)
+		}
+		mux.Handle("/", landingPage)
+	}
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(` <!DOCTYPE html>
 		<html>
