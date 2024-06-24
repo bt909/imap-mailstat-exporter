@@ -8,6 +8,7 @@
 * [CHORE] update golang from 1.21 to 1.22 https://github.com/bt909/imap-mailstat-exporter/pull/82
 
 * [CI] update goreleaser/goreleaser-action action from v5 to v6 https://github.com/bt909/imap-mailstat-exporter/pull/80
+* [CI] update docker/build-push-action action from v5 to v6 https://github.com/bt909/imap-mailstat-exporter/pull/83
 
 # 0.3.1 / 2024-05-12
 
