@@ -1,4 +1,4 @@
-# Unreleased
+# 0.4.0 / 2024-06-26
 
 * [FEATURE] allow web.telemetry-path to be set to / https://github.com/bt909/imap-mailstat-exporter/pull/82
 
