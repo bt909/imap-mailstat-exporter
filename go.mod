@@ -1,6 +1,6 @@
 module github.com/bt909/imap-mailstat-exporter
 
-go 1.22
+go 1.23
 
 require (
 	github.com/BurntSushi/toml v1.4.0
