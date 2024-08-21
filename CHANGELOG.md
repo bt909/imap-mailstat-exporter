@@ -1,6 +1,7 @@
 # Unreleased / xxxx-xx-xx
 
 * [CHORE] update module github.com/prometheus/client_golang to from v1.19.1 to v1.20.1 https://github.com/bt909/imap-mailstat-exporter/pull/87
+* [CHORE] update golang from 1.22 to 1.23 https://github.com/bt909/imap-mailstat-exporter/pull/86
 
 # 0.4.0 / 2024-06-26
 
@@ -9,7 +10,7 @@
 * [CHORE] update module github.com/burntsushi/toml from v1.3.2 to v1.4.0 https://github.com/bt909/imap-mailstat-exporter/pull/76
 * [CHORE] update module github.com/prometheus/common from v0.53.0 to v0.54.0 https://github.com/bt909/imap-mailstat-exporter/pull/78
 * [CHORE] update golang toolchain from 1.22.3 to 1.22.4 https://github.com/bt909/imap-mailstat-exporter/pull/79
-* [CHORE] update golang from 1.21 to 1.22 https://github.com/bt909/imap-mailstat-exporter/pull/82
+* [CHORE] update golang from 1.21 to 1.22 https://github.com/bt909/imadocsp-mailstat-exporter/pull/82
 * [CHORE] update module github.com/prometheus/common from v0.54.0 to v0.55.0 https://github.com/bt909/imap-mailstat-exporter/pull/84
 
 * [CI] update goreleaser/goreleaser-action action from v5 to v6 https://github.com/bt909/imap-mailstat-exporter/pull/80
