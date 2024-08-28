@@ -1,5 +1,6 @@
 # Unreleased / xxxx-xx-xx
 
+* [CHORE] update module github.com/prometheus/common to from 0.55.0 to v0.56.0https://github.com/bt909/imap-mailstat-exporter/pull/89
 * [CHORE] update module github.com/prometheus/client_golang to from v1.20.1 to v1.20.2 https://github.com/bt909/imap-mailstat-exporter/pull/88
 * [CHORE] update module github.com/prometheus/client_golang to from v1.19.1 to v1.20.1 https://github.com/bt909/imap-mailstat-exporter/pull/87
 * [CHORE] update golang from 1.22 to 1.23 https://github.com/bt909/imap-mailstat-exporter/pull/86
