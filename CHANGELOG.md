@@ -1,5 +1,6 @@
 # Unreleased / xxxx-xx-xx
 
+* [CHORE] update module github.com/prometheus/common to from 0.57.0 to v0.58.0 https://github.com/bt909/imap-mailstat-exporter/pull/92
 * [CHORE] update module github.com/prometheus/common to from 0.56.0 to v0.57.0 https://github.com/bt909/imap-mailstat-exporter/pull/91
 
 # 0.4.1 / 2024-08-28
