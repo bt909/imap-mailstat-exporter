@@ -3,6 +3,7 @@ package main
 
 import (
 	"net/http"
+	"net/http/pprof"
 	"os"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -67,6 +68,11 @@ func main() {
 	reg.MustRegister(d)
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 	mux.Handle(*metricsPath, promHandler)
 	if *metricsPath != "/" {
