@@ -1,4 +1,4 @@
-# Unreleased / xxxx-xx-xx
+# 0.5.0 / 2024-09-09
 
 * [FEATURE] enable pprof profiling from Go runtime https://github.com/bt909/imap-mailstat-exporter/pull/94
 
@@ -11,6 +11,8 @@
 * [CHORE] add go mod tidy to renovate https://github.com/bt909/imap-mailstat-exporter/pull/98
 
 * [REFACTOR] centralize the promlogconfig assignment https://github.com/bt909/imap-mailstat-exporter/pull/99
+
+* [FIX] fix CVE-2024-34156, CVE-2024-34155 and CVE-2024-34158 by rebuilding image with latest gollang version by building a new release. As this release contains a new feature, version will be increased in minor version https://github.com/bt909/imap-mailstat-exporter/pull/100
 
 # 0.4.1 / 2024-08-28
 
