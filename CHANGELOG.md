@@ -10,6 +10,8 @@
 * [CHORE] update module github.com/prometheus/client_golang to from v1.20.2 to v1.20.3 https://github.com/bt909/imap-mailstat-exporter/pull/95
 * [CHORE] add go mod tidy to renovate https://github.com/bt909/imap-mailstat-exporter/pull/98
 
+* [REFACTOR] centralize the promlogconfig assignment https://github.com/bt909/imap-mailstat-exporter/pull/99
+
 # 0.4.1 / 2024-08-28
 
 * [CHORE] update module github.com/prometheus/common to from 0.55.0 to v0.56.0 https://github.com/bt909/imap-mailstat-exporter/pull/89

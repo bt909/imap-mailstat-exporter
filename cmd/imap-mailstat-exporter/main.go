@@ -25,7 +25,8 @@ var (
 	configfile          *string
 	oldestunseenfeature *bool
 	mailboxpassword     *string
-	logger              = promlog.New(&promlog.Config{})
+	promlogconfig       = &promlog.Config{}
+	logger              = promlog.New(promlogconfig)
 )
 
 // main function just for the main prometheus exporter functions
@@ -41,12 +42,9 @@ func main() {
 	app.HelpFlag.Short('h')
 	app.VersionFlag.Short('v')
 
-	promlogConfig := &promlog.Config{}
-	flag.AddFlags(app, promlogConfig)
+	flag.AddFlags(app, promlogconfig)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
-
-	logger = promlog.New(promlogConfig)
 
 	level.Info(logger).Log("msg", "Starting imap-mailstat-exporter", "Version", Version)
 	reg := prometheus.NewRegistry()
