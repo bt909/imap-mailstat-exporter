@@ -7,11 +7,10 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/promlog"
-	"github.com/prometheus/common/promlog/flag"
+	"github.com/prometheus/common/promslog"
+	"github.com/prometheus/common/promslog/flag"
 	"github.com/prometheus/exporter-toolkit/web"
 	"github.com/prometheus/exporter-toolkit/web/kingpinflag"
 
@@ -21,12 +20,11 @@ import (
 
 var (
 	name                = "imap-mailstat-exporter"
-	Version             = "0.6.0-alpha"
+	Version             = "0.6.0-beta"
 	configfile          *string
 	oldestunseenfeature *bool
 	mailboxpassword     *string
-	promlogconfig       = &promlog.Config{}
-	logger              = promlog.New(promlogconfig)
+	promslogConfig      = &promslog.Config{}
 )
 
 // main function just for the main prometheus exporter functions
@@ -42,25 +40,28 @@ func main() {
 	app.HelpFlag.Short('h')
 	app.VersionFlag.Short('v')
 
-	flag.AddFlags(app, promlogconfig)
+	flag.AddFlags(app, promslogConfig)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	level.Info(logger).Log("msg", "Starting imap-mailstat-exporter", "Version", Version)
+	// initialize logger
+	logger := promslog.New(promslogConfig)
+
+	logger.Info("Starting imap-mailstat-exporter", "Version", Version)
 	reg := prometheus.NewRegistry()
-	level.Info(logger).Log("msg", "Reading config file", "File", *configfile)
+	logger.Info("Reading config file", "File", *configfile)
 	config, err := configread.GetConfig(*configfile)
 	if err != nil {
-		level.Error(logger).Log("msg", "Error in reading config", "Error", err)
+		logger.Error("Error in reading config", "Error", err)
 		os.Exit(1)
 	}
 	switch {
 	case len(config.Accounts) == 1 && *mailboxpassword != "\x00":
 		config.Accounts[0].Password = *mailboxpassword
 	case len(config.Accounts) > 1 && *mailboxpassword != "\x00":
-		level.Error(logger).Log("msg", "Configfile has set more than one mailbox and password via is set commandline or environment variable, but will be ignored!")
+		logger.Error("Configfile has set more than one mailbox and password via is set commandline or environment variable, but will be ignored!")
 	case len(config.Accounts) == 1 && *mailboxpassword == "\x00" && config.Accounts[0].Password == "":
-		level.Warn(logger).Log("msg", "Configfile has empty password and you don't have set a password via commandline or environment variable")
+		logger.Warn("Configfile has empty password and you don't have set a password via commandline or environment variable")
 	}
 	d := valuecollect.NewImapStatsCollector(config, logger, *oldestunseenfeature, Version)
 	reg.MustRegister(d)
@@ -96,7 +97,7 @@ func main() {
 		}
 		landingPage, err := web.NewLandingPage(landingConfig)
 		if err != nil {
-			level.Error(logger).Log("err", err)
+			logger.Error("Error on web page handling", "Error", err.Error())
 			os.Exit(1)
 		}
 		mux.Handle("/", landingPage)
@@ -112,6 +113,6 @@ func main() {
 
 	server := &http.Server{Handler: mux}
 	if err := web.ListenAndServe(server, toolkitFlags, logger); err != nil {
-		level.Error(logger).Log("msg", "Cannot start exporter", "Error", err)
+		logger.Error("Cannot start exporter", "Error", err)
 	}
 }

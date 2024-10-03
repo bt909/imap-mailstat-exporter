@@ -1,6 +1,11 @@
 # Unreleased / XXXX-XX-XX
 
+* [CHANGE] adapt to slog logging which is introduced by exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/101
+
+* [CHORE] update module github.com/prometheus/exporter-toolkit from v0.12.0 to v0.13.0 https://github.com/bt909/imap-mailstat-exporter/pull/101
 * [CHORE] update module github.com/prometheus/client_golang to from v1.20.3 to v1.20.4 https://github.com/bt909/imap-mailstat-exporter/pull/102
+
+* [FIX] fix flags handling for log.level and log.format, which was broken with refactoring in release 0.5.0 https://github.com/bt909/imap-mailstat-exporter/pull/101
 
 # 0.5.0 / 2024-09-09
 

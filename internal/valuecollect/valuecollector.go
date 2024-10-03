@@ -4,6 +4,7 @@ package valuecollect
 import (
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"sort"
 	"strings"
 	"sync"
@@ -12,8 +13,6 @@ import (
 	"github.com/emersion/go-imap"
 	quota "github.com/emersion/go-imap-quota"
 	"github.com/emersion/go-imap/client"
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/bt909/imap-mailstat-exporter/internal/configread"
@@ -35,13 +34,13 @@ type imapStatsCollector struct {
 	fetchDuration       *prometheus.Desc
 	info                *prometheus.Desc
 	configfile          configread.MyConfig
-	logger              log.Logger
+	logger              *slog.Logger
 	oldestunseenfeature bool
 	version             string
 }
 
 // provide metric "layout"
-func NewImapStatsCollector(configfile configread.MyConfig, logger log.Logger, oldestunseenfeature bool, version string) *imapStatsCollector {
+func NewImapStatsCollector(configfile configread.MyConfig, logger *slog.Logger, oldestunseenfeature bool, version string) *imapStatsCollector {
 	return &imapStatsCollector{
 		up:   prometheus.NewDesc("mailstat_up", "Was talking to all accounts imap successfully.", nil, nil),
 		info: prometheus.NewDesc("mailstat_info", "Info metric for imap-mailstat-exporter.", []string{"version"}, nil),
@@ -114,7 +113,7 @@ func NewImapStatsCollector(configfile configread.MyConfig, logger log.Logger, ol
 }
 
 // count all mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
+func countAllmails(mailbox *imap.MailboxStatus, mailboxfolder string) (mailboxfoldername string, mailboxname string, messages uint32) {
 	mailboxfolder = strings.ReplaceAll(mailboxfolder, " ", "_")
 	mailboxname = strings.ReplaceAll(mailbox.Name, ".", "_")
 	messages = mailbox.Messages
@@ -122,14 +121,14 @@ func countAllmails(c *client.Client, mailbox *imap.MailboxStatus, mailboxfolder 
 }
 
 // count unseen mails and return values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, logger log.Logger, mailboxname string, oldestunseenfeature bool) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
+func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, logger *slog.Logger, mailboxname string, oldestunseenfeature bool) (metricname string, namespacename string, messages uint32, oldestunseen int64) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 	criteria := imap.NewSearchCriteria()
 	criteria.WithoutFlags = []string{imap.SeenFlag}
 	ids, err := c.Search(criteria)
 	if err != nil {
-		level.Error(logger).Log("msg", "Error in searching mails", "mailboxname", mailboxname)
+		logger.Error("Error in searching mails", "mailboxname", mailboxname)
 		return
 	}
 	// if feature flag is enabled and there are unseen mail ids, we try to get the date from the envelope header and convert to unix timestamp
@@ -139,7 +138,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, logger log.Logge
 		mails := make(chan *imap.Message, len(ids))
 		err := c.Fetch(seqset, []imap.FetchItem{imap.FetchEnvelope}, mails)
 		if err != nil {
-			level.Error(logger).Log("msg", "Error in getting dates for unseen mails", "mailboxname", mailboxname)
+			logger.Error("Error in getting dates for unseen mails", "mailboxname", mailboxname)
 			return
 		}
 		var dates []int64
@@ -157,7 +156,7 @@ func countUnseen(c *client.Client, mailbox *imap.MailboxStatus, logger log.Logge
 }
 
 // returns quota related values and "cleaned" names for using as metric labels (replace characters not allowed in labels)
-func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger log.Logger, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
+func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger *slog.Logger, mailboxname string) (metricname string, namespacename string, mailboxUsed map[string]uint32, mailboxAvail map[string]uint32) {
 	metricname = strings.ReplaceAll(mailboxname, " ", "_")
 	namespacename = strings.ReplaceAll(mailbox.Name, ".", "_")
 
@@ -167,7 +166,7 @@ func getMailboxUsed(qc *quota.Client, mailbox *imap.MailboxStatus, logger log.Lo
 	// Retrieve quotas for INBOX
 	quotas, err := qc.GetQuotaRoot("INBOX")
 	if err != nil {
-		level.Error(logger).Log("msg", "Error in getting quota for INBOX", "mailboxname", mailboxname)
+		logger.Error("Error in getting quota for INBOX", "mailboxname", mailboxname)
 		return
 	}
 
@@ -213,7 +212,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 		start := time.Now()
 		go func(account int) {
 			defer wg.Done()
-			level.Info(valuecollector.logger).Log("msg", "Start metrics fetch", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+			valuecollector.logger.Info("Start metrics fetch", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 
 			var serverconnection strings.Builder
 			var c *client.Client
@@ -225,21 +224,21 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 			if valuecollector.configfile.Accounts[account].Starttls {
 				c, err = client.Dial(serverconnection.String())
 				if err != nil {
-					level.Error(valuecollector.logger).Log("msg", "Failed to dial IMAP server", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+					valuecollector.logger.Error("Failed to dial IMAP server", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 					up = 0
 					return
 				}
 				tlsConfig := &tls.Config{ServerName: valuecollector.configfile.Accounts[account].Serveraddress}
 				if err := c.StartTLS(tlsConfig); err != nil {
-					level.Error(valuecollector.logger).Log("msg", "Failed to start TLS secured connection via StartTLS", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+					valuecollector.logger.Error("Failed to start TLS secured connection via StartTLS", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 					up = 0
 					return
 				}
 			} else {
 				c, err = client.DialTLS(serverconnection.String(), nil)
-				level.Info(valuecollector.logger).Log("msg", "Connection setup", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
+				valuecollector.logger.Info("Connection setup", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
 				if err != nil {
-					level.Error(valuecollector.logger).Log("msg", "Failed to dial server via TLS", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+					valuecollector.logger.Error("Failed to dial server via TLS", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 					up = 0
 					return
 				}
@@ -249,22 +248,22 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			startLogin := time.Now()
 			if err := c.Login(valuecollector.configfile.Accounts[account].Username, valuecollector.configfile.Accounts[account].Password); err != nil {
-				level.Error(valuecollector.logger).Log("msg", "Failed to login", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+				valuecollector.logger.Error("Failed to login", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 				up = 0
 				return
 			}
-			level.Info(valuecollector.logger).Log("msg", "IMAP login", "duration", time.Since(startLogin), "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+			valuecollector.logger.Info("IMAP login", "duration", time.Since(startLogin), "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 
 			defer c.Logout()
 
 			selectedInbox, err := c.Select("INBOX", true)
 			if err != nil {
-				level.Error(valuecollector.logger).Log("msg", "Failed to select", "folder", "Inbox", "address", valuecollector.configfile.Accounts[account].Mailaddress)
+				valuecollector.logger.Error("Failed to select", "folder", "Inbox", "address", valuecollector.configfile.Accounts[account].Mailaddress)
 				up = 0
 				return
 			}
 
-			metricSeenInbox, namespaceSeenInBox, countAllmailsInbox := countAllmails(c, selectedInbox, valuecollector.configfile.Accounts[account].Name)
+			metricSeenInbox, namespaceSeenInBox, countAllmailsInbox := countAllmails(selectedInbox, valuecollector.configfile.Accounts[account].Name)
 			var metricnameSeenInbox []string
 			metricnameSeenInbox = append(metricnameSeenInbox, metricSeenInbox, namespaceSeenInBox)
 			ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmailsInbox), metricnameSeenInbox...)
@@ -285,7 +284,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			// Check for server support and set metrics only for accounts with metrics available
 			if quotaSupport, _ := qc.SupportQuota(); quotaSupport {
-				level.Info(valuecollector.logger).Log("msg", "Fetching quota related metrics", "address", valuecollector.configfile.Accounts[account].Mailaddress)
+				valuecollector.logger.Info("Fetching quota related metrics", "address", valuecollector.configfile.Accounts[account].Mailaddress)
 
 				metricMailboxQuotaUsed, namespaceMailboxQuotaUsed, countMailboxQuotaUsed, _ := getMailboxUsed(qc, selectedInbox, valuecollector.logger, valuecollector.configfile.Accounts[account].Name)
 				var metricnameMailboxQuotaUsed []string
@@ -335,12 +334,12 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				mboxfolder.WriteString(f)
 				selected, err := c.Select(mboxfolder.String(), true)
 				if err != nil {
-					level.Error(valuecollector.logger).Log("msg", "Failed to select", "address", valuecollector.configfile.Accounts[account].Mailaddress, "folder", mboxfolder)
+					valuecollector.logger.Error("Failed to select", "address", valuecollector.configfile.Accounts[account].Mailaddress, "folder", mboxfolder)
 					up = 0
 					return
 				}
 
-				metricSeen, namespaceSeen, countAllmails := countAllmails(c, selected, valuecollector.configfile.Accounts[account].Name)
+				metricSeen, namespaceSeen, countAllmails := countAllmails(selected, valuecollector.configfile.Accounts[account].Name)
 				var metricnameSeen []string
 				metricnameSeen = append(metricnameSeen, metricSeen, namespaceSeen)
 				ch <- prometheus.MustNewConstMetric(valuecollector.allMails, prometheus.GaugeValue, float64(countAllmails), metricnameSeen...)
@@ -358,7 +357,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 			}
 			ch <- prometheus.MustNewConstMetric(valuecollector.fetchDuration, prometheus.GaugeValue, float64(time.Since(start).Seconds()), strings.ReplaceAll(strings.ReplaceAll(valuecollector.configfile.Accounts[account].Name, ".", "_"), " ", "_"))
-			level.Info(valuecollector.logger).Log("msg", "Metric fetch", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
+			valuecollector.logger.Info("Metric fetch", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
 		}(account)
 	}
 	wg.Wait()
