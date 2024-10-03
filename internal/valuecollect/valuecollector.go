@@ -236,7 +236,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 			} else {
 				c, err = client.DialTLS(serverconnection.String(), nil)
-				valuecollector.logger.Info("Connection setup", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
+				valuecollector.logger.Info("Connection setup", "duration", time.Since(start).String(), "address", valuecollector.configfile.Accounts[account].Mailaddress)
 				if err != nil {
 					valuecollector.logger.Error("Failed to dial server via TLS", "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 					up = 0
@@ -252,7 +252,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				up = 0
 				return
 			}
-			valuecollector.logger.Info("IMAP login", "duration", time.Since(startLogin), "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
+			valuecollector.logger.Info("IMAP login", "duration", time.Since(startLogin).String(), "address", valuecollector.configfile.Accounts[account].Mailaddress, "server", valuecollector.configfile.Accounts[account].Serveraddress)
 
 			defer c.Logout()
 
@@ -357,7 +357,7 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 			}
 			ch <- prometheus.MustNewConstMetric(valuecollector.fetchDuration, prometheus.GaugeValue, float64(time.Since(start).Seconds()), strings.ReplaceAll(strings.ReplaceAll(valuecollector.configfile.Accounts[account].Name, ".", "_"), " ", "_"))
-			valuecollector.logger.Info("Metric fetch", "duration", time.Since(start), "address", valuecollector.configfile.Accounts[account].Mailaddress)
+			valuecollector.logger.Info("Metric fetch", "duration", time.Since(start).String(), "address", valuecollector.configfile.Accounts[account].Mailaddress)
 		}(account)
 	}
 	wg.Wait()
