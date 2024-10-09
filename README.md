@@ -14,14 +14,34 @@ As this exporter is using [exporter-toolkit](https://github.com/prometheus/expor
 
 The exporter provides 14 metrics, three main metrics are provided for all accounts, one metric can be enabled using a feature flag `--oldestunseen.feature`, eigth metrics are quota related and only provided if the server supports imap quota and two informatial metrics.
 
-If your account supports quota you can see in loglevel INFO (default) with the following log entry:
+If your account supports quota you can see in loglevel INFO (default) with the following log entry since version 0.6.0:
+
+```output
+time=2024-10-09T17:19:25.407Z level=INFO source=/go/src/imap-mailstat-exporter/internal/valuecollect/valuecollector.go:287 msg="Fetching quota related metrics" address=jane.doe@example.com
+
+```
+
+JSON Log format is a bit more detailed:
+
+```output
+{"time":"2024-10-09T17:30:25.663440549Z","level":"INFO","source":{"function":"github.com/bt909/imap-mailstat-exporter/internal/valuecollect.(*imapStatsCollector).Collect.func1","file":"/workspaces/imap-mailstat-exporter/internal/valuecollect/valuecollector.go","line":287},"msg":"Fetching quota related metrics","address":"jane.doe@example.com"}
+
+```
+
+Up to version 0.5.0 the log entries are looking a bit different.
 
 ```output
 ts=2023-10-30T22:12:27.376Z caller=valuecollector.go:266 level=info msg="Fetching quota related metrics" address=jane.doe@example.com
 
 ```
 
-The exposed metrics were the following in version 0.0.1 and can be enabled by using command line flag `--migration.mode`:
+Since version 0.6.0 the log format changed a bit, because of an update of the internal log library. Changes are:
+
+* `time=...` instead of `ts=...`
+* `level=INFO` instead of `level=info` (or `level=WARN`, etc., loglevel names are uppercase now)
+* `source=...` instead of `caller=...`
+
+The exposed metrics were the following in version 0.0.1 and can be enabled by using command line flag `--migration.mode` (only in version 0.1.0):
 
 `imap_mailstat_mails_all_quantity`  
 `imap_mailstat_mails_unseen_quantity`  
@@ -38,7 +58,7 @@ The exposed metrics were the following in version 0.0.1 and can be enabled by us
 > [!IMPORTANT]
 > In version 0.1.0 the metric names were changed. First because they were hard to read and now I hope I follow more best practices in naming metrics. As 0.1.0 comes with more than one breaking change my decision was to rename the metrics at this point as well. The exporter allows you for migration in version 0.1.0 to get the old metrics as well using command line flag `--migration.mode` or the also available environment variable `MAILSTAT_EXPORTER_MIGRATIONMODE=true`. This flag, the environment variable and the old metrics are removed in version 0.2.0.
 
-The exposed metrics since version 0.1.0 are the following:
+The exposed metrics since version 0.1.0 are:
 
 metric | type | description | remarks
 -------|------|-------------|---------
