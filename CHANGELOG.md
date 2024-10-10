@@ -1,6 +1,6 @@
-# Unreleased / XXXX-XX-XX
+# 0.6.0 / 2024-10-10
 
-* [CHANGE] adapt to slog logging which is introduced by exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/101
+* [CHANGE] adapt to slog logging (changes log output) which is introduced by exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/101
 * [CHANGE] adapt duration log entries to strings for json output like versions worked before switch to slog https://github.com/bt909/imap-mailstat-exporter/pull/104
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.12.0 to v0.13.0 https://github.com/bt909/imap-mailstat-exporter/pull/101
