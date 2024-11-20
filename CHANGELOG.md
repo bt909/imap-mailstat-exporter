@@ -1,3 +1,7 @@
+# 0.7.0 / xxxx-xx-xx
+
+* [CHORE] update module github.com/prometheus/client_golang to from v1.20.3 to v1.20.4 https://github.com/bt909/imap-mailstat-exporter/pull/106
+
 # 0.6.0 / 2024-10-10
 
 * [CHANGE] adapt to slog logging (changes log output) which is introduced by exporter-toolkit https://github.com/bt909/imap-mailstat-exporter/pull/101
