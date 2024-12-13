@@ -1,8 +1,10 @@
-# 0.7.0 / xxxx-xx-xx
+# 0.6.1 / 2024-12-13
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.1 to v0.13.2 https://github.com/bt909/imap-mailstat-exporter/pull/110
 * [CHORE] update module github.com/prometheus/client_golang to from v1.20.4 to v1.20.5 https://github.com/bt909/imap-mailstat-exporter/pull/106
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.0 to v0.13.1 https://github.com/bt909/imap-mailstat-exporter/pull/108
+
+* [FIX] fix CVE-2024-45337 by updating golang.org/x/crypto to v0.31.0 https://github.com/bt909/imap-mailstat-exporter/pull/110
 
 # 0.6.0 / 2024-10-10
 
@@ -29,7 +31,7 @@
 
 * [REFACTOR] centralize the promlogconfig assignment https://github.com/bt909/imap-mailstat-exporter/pull/99
 
-* [FIX] fix CVE-2024-34156, CVE-2024-34155 and CVE-2024-34158 by rebuilding image with latest gollang version by building a new release. As this release contains a new feature, version will be increased in minor version https://github.com/bt909/imap-mailstat-exporter/pull/100
+* [FIX] fix CVE-2024-34156, CVE-2024-34155 and CVE-2024-34158 by rebuilding image with latest golang version by building a new release. As this release contains a new feature, version will be increased in minor version https://github.com/bt909/imap-mailstat-exporter/pull/100
 
 # 0.4.1 / 2024-08-28
 
