@@ -1,5 +1,6 @@
 # 0.7.0 / xxxx-xx-xx
 
+* [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.1 to v0.13.2 https://github.com/bt909/imap-mailstat-exporter/pull/110
 * [CHORE] update module github.com/prometheus/client_golang to from v1.20.4 to v1.20.5 https://github.com/bt909/imap-mailstat-exporter/pull/106
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.0 to v0.13.1 https://github.com/bt909/imap-mailstat-exporter/pull/108
 
