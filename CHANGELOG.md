@@ -1,3 +1,9 @@
+# 0.6.2 / 2024-12-22
+
+* [CHORE] update several transitive dependencies https://github.com/bt909/imap-mailstat-exporter/pull/111
+
+* [FIX] fix CVE-2024-45338 by updating golang.org/x/net to v0.33.0 https://github.com/bt909/imap-mailstat-exporter/pull/111
+
 # 0.6.1 / 2024-12-13
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.1 to v0.13.2 https://github.com/bt909/imap-mailstat-exporter/pull/110
