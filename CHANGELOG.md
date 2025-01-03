@@ -1,3 +1,8 @@
+# Unreleased / xxxx-xx-xx
+
+* [CHORE] add labels to dockerfile https://github.com/bt909/imap-mailstat-exporter/pull/113
+* [CHORE] migrate renovate configuration https://github.com/bt909/imap-mailstat-exporter/pull/112
+
 # 0.6.2 / 2024-12-22
 
 * [CHORE] update several transitive dependencies https://github.com/bt909/imap-mailstat-exporter/pull/111
