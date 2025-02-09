@@ -1,10 +1,12 @@
-# Unreleased / xxxx-xx-xx
+# 0.6.3 / 2025-02-09
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.2 to v0.14.0 https://github.com/bt909/imap-mailstat-exporter/pull/115
 * [CHORE] update module github.com/prometheus/common from 0.61.0 to v0.62.0 https://github.com/bt909/imap-mailstat-exporter/pull/114
 * [CHORE] add labels to dockerfile https://github.com/bt909/imap-mailstat-exporter/pull/113
 * [CHORE] migrate renovate configuration https://github.com/bt909/imap-mailstat-exporter/pull/112
 
+* [FIX] fix several CVEs by release with latest Go version (1.23.6),fixes: CVE-2025-22866, CVE-2024-45341, CVE-2024-45336
+ 
 # 0.6.2 / 2024-12-22
 
 * [CHORE] update several transitive dependencies https://github.com/bt909/imap-mailstat-exporter/pull/111
