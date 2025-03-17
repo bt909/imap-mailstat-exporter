@@ -1,3 +1,7 @@
+# 0.6.4 / 2025-03-17
+
+*  [FIX] fix CVE-2025-22870 by updating dependencies https://github.com/bt909/imap-mailstat-exporter/pull/119
+
 # 0.6.3 / 2025-02-09
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.13.2 to v0.14.0 https://github.com/bt909/imap-mailstat-exporter/pull/115
