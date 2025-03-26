@@ -1,3 +1,7 @@
+# Unreleased / xxxx-xx-xx
+
+* [CHORE] update module github.com/burntsushi/toml from v1.4.0 to v1.5.0 https://github.com/bt909/imap-mailstat-exporter/pull/120
+
 # 0.6.4 / 2025-03-17
 
 *  [FIX] fix CVE-2025-22870 by updating dependencies https://github.com/bt909/imap-mailstat-exporter/pull/119
