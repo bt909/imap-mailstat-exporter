@@ -1,7 +1,8 @@
-# Unreleased / xxxx-xx-xx
+# 0.6.5 / 2025-05-02
 
 * [CHORE] update module github.com/burntsushi/toml from v1.4.0 to v1.5.0 https://github.com/bt909/imap-mailstat-exporter/pull/120
-* [CHORE] update module github.com/prometheus/client_golang to from v1.21.1 to v1.22.0 https://github.com/bt909/imap-mailstat-exporter/pull/121 
+* [CHORE] update module github.com/prometheus/client_golang to from v1.21.1 to v1.22.0 https://github.com/bt909/imap-mailstat-exporter/pull/121
+* [CHORE] update all dependecies to fix CVE-2025-22871 and CVE-2025-22872 https://github.com/bt909/imap-mailstat-exporter/pull/122
 
 # 0.6.4 / 2025-03-17
 
