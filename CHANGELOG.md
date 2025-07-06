@@ -1,3 +1,8 @@
+# 0.6.6 / 2025-07-06
+
+* [CHORE] update module github.com/prometheus/common from 0.63.0 to v0.65.0 update module github.com/prometheus/common from 0.61.0 to v0.62.0
+* [FIX] fix CVE-2025-22874, CVE-2025-0913 and CVE-2025-4673 by creating new release using latest golang version
+
 # 0.6.5 / 2025-05-02
 
 * [CHORE] update module github.com/burntsushi/toml from v1.4.0 to v1.5.0 https://github.com/bt909/imap-mailstat-exporter/pull/120
