@@ -2,6 +2,8 @@
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.14.0 to v0.14.1 https://github.com/bt909/imap-mailstat-exporter/pull/127
 * [CHORE] update to Go version 1.25 and upgrade some dependencies (prometheus/client_golang) https://github.com/bt909/imap-mailstat-exporter/pull/131
+* [CI] update actions/setup-go action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/129
+* [CI] update actions/checkout action to v5 https://github.com/bt909/imap-mailstat-exporter/pull/125
 
 # 0.6.6 / 2025-07-06
 
