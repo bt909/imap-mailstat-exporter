@@ -1,6 +1,7 @@
 # x.x.x / xxxx-xx-xx
 
-* [CHORE] update module github.com/prometheus/exporter-toolkit from v0.14.1 to v0.15.0 https://github.com/bt909/imap-mailstat-exporter/pull/134
+* [CHORE] update module github.com/prometheus/exporter-toolkit from v0.14.1 to v0.15.0 https://github.com/bt909/imap-mailstat-exporter/pull/135
+* [CHORE] update module github.com/prometheus/common from 0.66.1 to 0.67.1 https://github.com/bt909/imap-mailstat-exporter/pull/134
 
 # 0.7.0 / 2025-09-10
 
@@ -11,7 +12,7 @@
 
 # 0.6.6 / 2025-07-06
 
-* [CHORE] update module github.com/prometheus/common from 0.63.0 to v0.65.0 update module github.com/prometheus/common from 0.61.0 to v0.62.0
+* [CHORE] update module github.com/prometheus/common from 0.63.0 to v0.65.0 https://github.com/bt909/imap-mailstat-exporter/pull/123
 * [FIX] fix CVE-2025-22874, CVE-2025-0913 and CVE-2025-4673 by creating new release using latest golang version
 
 # 0.6.5 / 2025-05-02
