@@ -2,6 +2,7 @@
 
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.14.1 to v0.15.0 https://github.com/bt909/imap-mailstat-exporter/pull/135
 * [CHORE] update module github.com/prometheus/common from 0.66.1 to 0.67.1 https://github.com/bt909/imap-mailstat-exporter/pull/134
+* [CHORE] update module github.com/prometheus/common from 0.67.1 to 0.67.2 https://github.com/bt909/imap-mailstat-exporter/pull/136
 
 # 0.7.0 / 2025-09-10
 
