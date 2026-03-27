@@ -12,6 +12,7 @@
 * [CI] update docker/metadata-action action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/147
 * [CI] update docker/setup-buildx-action action to v4 https://github.com/bt909/imap-mailstat-exporter/pull/146
 * [CI] update docker/setup-qemu-action action to v4 https://github.com/bt909/imap-mailstat-exporter/pull/145
+* [CI] update docker/login-action action to v4 https://github.com/bt909/imap-mailstat-exporter/pull/144
 * [CI] update actions/checkout action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/138
 
 # 0.7.0 / 2025-09-10
