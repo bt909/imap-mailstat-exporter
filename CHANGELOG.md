@@ -10,6 +10,7 @@
 * [CI] update docker/build-push-action action to v7 https://github.com/bt909/imap-mailstat-exporter/pull/148
 * [CI] update goreleaser/goreleaser-action action to v7 https://github.com/bt909/imap-mailstat-exporter/pull/143
 * [CI] update docker/metadata-action action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/147
+* [CI] update docker/setup-buildx-action action to v4 https://github.com/bt909/imap-mailstat-exporter/pull/146
 * [CI] update actions/checkout action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/138
 
 # 0.7.0 / 2025-09-10
