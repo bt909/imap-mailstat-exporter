@@ -1,4 +1,4 @@
-# x.x.x / xxxx-xx-xx
+# 0.7.1 / 2026-03-27
 
 * [CHORE] update to Go version 1.26 https://github.com/bt909/imap-mailstat-exporter/pull/142
 * [CHORE] update module github.com/burntsushi/toml from v1.5.0 to v1.6.0 https://github.com/bt909/imap-mailstat-exporter/pull/139
