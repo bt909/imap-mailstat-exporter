@@ -1,5 +1,6 @@
 # x.x.x / xxxx-xx-xx
 
+* [CHORE] update to Go version 1.26 https://github.com/bt909/imap-mailstat-exporter/pull/142
 * [CHORE] update module github.com/burntsushi/toml from v1.5.0 to v1.6.0 https://github.com/bt909/imap-mailstat-exporter/pull/139
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.14.1 to v0.15.0 https://github.com/bt909/imap-mailstat-exporter/pull/135
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.15.0 to v0.15.1 https://github.com/bt909/imap-mailstat-exporter/pull/140
