@@ -7,7 +7,8 @@
 * [CHORE] update module github.com/prometheus/common from 0.67.1 to 0.67.2 https://github.com/bt909/imap-mailstat-exporter/pull/136
 * [CHORE] update module github.com/prometheus/common from 0.67.2 to 0.67.4 https://github.com/bt909/imap-mailstat-exporter/pull/137
 * [CHORE] update module github.com/prometheus/common from 0.67.4 to 0.67.5 https://github.com/bt909/imap-mailstat-exporter/pull/141
-* [CI] update update actions/checkout action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/138
+* [CI] update docker/build-push-action action to v7 https://github.com/bt909/imap-mailstat-exporter/pull/148
+* [CI] update actions/checkout action to v6 https://github.com/bt909/imap-mailstat-exporter/pull/138
 
 # 0.7.0 / 2025-09-10
 
