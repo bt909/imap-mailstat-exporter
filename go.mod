@@ -9,7 +9,7 @@ require (
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
-	github.com/prometheus/exporter-toolkit v0.15.1
+	github.com/prometheus/exporter-toolkit v0.16.0
 )
 
 require (
