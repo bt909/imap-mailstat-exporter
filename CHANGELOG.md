@@ -1,5 +1,6 @@
 # x.x.x / xxxx-xx-xx
 
+* [CHORE] update module github.com/prometheus/common from v0.67.5 to v0.70.0 https://github.com/bt909/imap-mailstat-exporter/pull/151
 * [CHORE] update module github.com/prometheus/exporter-toolkit from v0.15.1 to v0.16.0 https://github.com/bt909/imap-mailstat-exporter/pull/150
 
 # 0.7.1 / 2026-03-27
