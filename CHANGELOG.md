@@ -1,3 +1,7 @@
+# 0.7.6 / 2026-11-13
+
+* [CHORE] update module github.com/prometheus/common from v0.73.1 to 0.74.0 https://github.com/bt909/imap-mailstat-exporter/pull/164
+
 # 0.7.5 / 2026-11-07
 
 * [CHORE] update module github.com/prometheus/common from 0.72.1 to v0.73.1 https://github.com/bt909/imap-mailstat-exporter/pull/163
