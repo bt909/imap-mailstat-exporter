@@ -329,12 +329,9 @@ func (valuecollector *imapStatsCollector) Collect(ch chan<- prometheus.Metric) {
 
 			for _, f := range valuecollector.configfile.Accounts[account].Folders {
 
-				var mboxfolder strings.Builder
-				mboxfolder.WriteString("INBOX.")
-				mboxfolder.WriteString(f)
-				selected, err := c.Select(mboxfolder.String(), true)
+				selected, err := c.Select(f, true)
 				if err != nil {
-					valuecollector.logger.Error("Failed to select", "address", valuecollector.configfile.Accounts[account].Mailaddress, "folder", mboxfolder)
+					valuecollector.logger.Error("Failed to select", "address", valuecollector.configfile.Accounts[account].Mailaddress, "folder", f)
 					up = 0
 					return
 				}

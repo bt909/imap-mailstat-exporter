@@ -1,3 +1,7 @@
+# x.x.x / xxxx-xx-xx
+
+* [FEAT] remove hard coded INBOX folder from additional folders setting, so folders on the same level as INBOX can be used https://github.com/bt909/imap-mailstat-exporter/pull/166
+
 # 0.7.6 / 2026-11-13
 
 * [CHORE] update module github.com/prometheus/common from v0.73.1 to 0.74.0 https://github.com/bt909/imap-mailstat-exporter/pull/164
